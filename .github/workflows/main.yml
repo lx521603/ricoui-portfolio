@@ -1,17 +1,18 @@
 name: Deploy Astro to GitHub Pages (PNPM)
 
 on:
-  # push:
-  #   branches: [main] 
+  #push:
+    #branches: [main] # 当主分支有代码推送时触发
+  # 也可以手动触发部署
   workflow_dispatch:
 
-# Required for GitHub Pages deployment via Actions
+# 部署到 GitHub Pages 所需的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Avoid overlapping deployments
+# 避免部署任务重叠
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -22,52 +23,48 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        # 如果您的仓库很大，可以考虑使用 'fetch-depth: 0' 来获取完整历史记录，但默认 v4 即可
 
+      # --- PNPM 和 Node.js 设置 ---
+      
+      # 1. 设置 Node.js 环境并配置 PNPM 缓存
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          # 告诉 setup-node 缓存 PNPM 依赖
+          # 关键：指定使用 pnpm 作为缓存键，查找 pnpm-lock.yaml
           cache: pnpm 
 
-      # === 关键步骤：安装 PNPM 本身 ===
-      - name: Install pnpm
+      # 2. 安装 PNPM 命令行工具
+      - name: Install pnpm CLI
         uses: pnpm/action-setup@v3
         with:
-          version: 8 # 推荐固定版本
-          run_install: false
+          version: 8 # 推荐固定版本，以确保环境一致性
+          run_install: false # 避免在此步骤中意外运行安装
 
+      # 3. 运行依赖安装 (现在 pnpm 命令在 PATH 中可用)
       - name: Install dependencies with pnpm
-        # 现在 pnpm 命令在 PATH 中可用
         run: pnpm install --frozen-lockfile
+        # --frozen-lockfile 在 CI 环境中是最佳实践
 
-      - name: Build site
-        run: pnpm run build
+      # --- 构建和部署工件上传 ---
       
-      # ... 后续步骤
-
-      - name: Install dependencies with pnpm
-        # 关键修改 3: 使用 pnpm install 进行依赖安装
-        # pnpm install 会自动检查 pnpm-lock.yaml 并使用缓存
-        run: pnpm install --frozen-lockfile
-        # --frozen-lockfile 确保 CI 环境中使用锁文件中精确的版本
-
-      # --- END PNPM OPTIMIZATION ---
-
-      - name: Build site (pnpm run build)
-        # 关键修改 4: 确保运行的是 pnpm 的 build 命令
+      - name: Build site
+        # 确保使用 pnpm 执行构建脚本
         run: pnpm run build
 
       - name: Upload artifact
+        # 上传 Astro 的默认输出目录 'dist'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist # Astro outputs static site to 'dist' by default
+          path: ./dist 
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     runs-on: ubuntu-latest
+    # 依赖于 build job 成功完成
     needs: build
     steps:
       - name: Deploy to GitHub Pages
