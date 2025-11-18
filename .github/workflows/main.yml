@@ -1,8 +1,8 @@
-name: Deploy Astro to GitHub Pages
+name: Deploy Astro to GitHub Pages (PNPM)
 
 on:
- # push:
-  #  branches: [main] # or 'master' if that's your default branch
+  # push:
+  #   branches: [main] 
   workflow_dispatch:
 
 # Required for GitHub Pages deployment via Actions
@@ -20,21 +20,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      # --- START PNPM OPTIMIZATION ---
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          # 关键修改 1: 将 cache 设置为 pnpm
+          cache: pnpm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install pnpm
+        # 关键修改 2: 显式安装 PNPM 包管理器
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8 
+          run_install: false # 暂不运行安装，留给下一步
 
-      - name: Build
-        # If your build script differs, adjust accordingly (e.g., `pnpm build`)
-        run: npm run build
+      - name: Install dependencies with pnpm
+        # 关键修改 3: 使用 pnpm install 进行依赖安装
+        # pnpm install 会自动检查 pnpm-lock.yaml 并使用缓存
+        run: pnpm install --frozen-lockfile
+        # --frozen-lockfile 确保 CI 环境中使用锁文件中精确的版本
+
+      # --- END PNPM OPTIMIZATION ---
+
+      - name: Build site (pnpm run build)
+        # 关键修改 4: 确保运行的是 pnpm 的 build 命令
+        run: pnpm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -51,3 +66,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
+
