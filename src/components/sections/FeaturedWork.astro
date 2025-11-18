@@ -33,13 +33,10 @@ let allProjects = projects as Project[];
 
 // 根据 limit 或 showAll 来控制显示数量
 if (limit !== undefined) {
-  // 如果指定了 limit，使用 limit
   allProjects = projects.slice(0, limit) as Project[];
 } else if (!showAll) {
-  // 如果没有指定 limit，且 showAll 为 false，默认显示 6 个
   allProjects = projects.slice(0, 6) as Project[];
 }
-// 如果 showAll 为 true 且没有 limit，显示所有项目
 
 // 前三个为特色项目（全宽）
 const featuredProjects = allProjects.slice(0, 3);
@@ -47,7 +44,7 @@ const featuredProjects = allProjects.slice(0, 3);
 // 其余为网格项目（两栏）
 const gridProjects = allProjects.slice(3);
 
-// 判断是否应该显示 "View All" 按钮
+// 是否显示 "View All" 按钮
 const shouldShowViewAll = limit !== undefined
   ? limit < projects.length
   : !showAll && projects.length > 6;
@@ -55,12 +52,19 @@ const shouldShowViewAll = limit !== undefined
 
 <section class="py-16 md:py-16 md:pb-12">
   <div class="site-container space-y-8 md:space-y-8">
+
     <!-- 标题部分 -->
     <SectionHeader title={title} description={description} />
 
-    <!-- 特色项目 - 全宽显示 -->
+    <!-- 特色项目（全宽大图） -->
     {featuredProjects.length > 0 && (
-      <div class="space-y-8 md:space-y-10" data-aos-delay="750" data-aos="fade-up-sm" data-aos-duration="1000" data-aos-once="true">
+      <div
+        class="space-y-8 md:space-y-10"
+        data-aos-delay="750"
+        data-aos="fade-up-sm"
+        data-aos-duration="1000"
+        data-aos-once="true"
+      >
         {featuredProjects
           .filter(project => project.isShow !== false)
           .map((project, index) => (
@@ -79,9 +83,15 @@ const shouldShowViewAll = limit !== undefined
       </div>
     )}
 
-    <!-- 网格项目 - 两栏显示 -->
+    <!-- 网格项目（两栏） -->
     {gridProjects.length > 0 && (
-      <div class="grid gap-6 md:gap-8 md:grid-cols-2" data-aos-delay="150" data-aos="fade-up-sm" data-aos-duration="1000" data-aos-once="true">
+      <div
+        class="grid gap-6 md:gap-8 md:grid-cols-2 auto-rows-fr items-start"
+        data-aos-delay="150"
+        data-aos="fade-up-sm"
+        data-aos-duration="1000"
+        data-aos-once="true"
+      >
         {gridProjects
           .filter(project => project.isShow !== false)
           .map((project, index) => (
@@ -100,7 +110,7 @@ const shouldShowViewAll = limit !== undefined
       </div>
     )}
 
-    <!-- See More 按钮 (可选) -->
+    <!-- “查看更多”按钮 -->
     {shouldShowViewAll && (
       <div class="flex items-center justify-center pt-4">
         <Button url="/works" className="w-full max-w-60">
@@ -108,5 +118,6 @@ const shouldShowViewAll = limit !== undefined
         </Button>
       </div>
     )}
+
   </div>
 </section>
