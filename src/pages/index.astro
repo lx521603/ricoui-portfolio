@@ -1,36 +1,23 @@
----
-import Button from "../components/ui/Button.astro";
-import { siteConfig } from "@/config/site";
-import HeroCard from "@/components/home/HeroCard.astro";
-import Layout from "@/layouts/Layout.astro";
-import FeaturedWork from "../components/sections/FeaturedWork.astro";
-import BlogSection from "@/components/sections/BlogSection.astro";
-import SocialCard from "@/components/cards/SocialCard.astro";
-import AnimatedText from "@/components/ui/AnimatedText.astro";
-import Explore from "@/components/sections/Explore.astro";
----
-
 <Layout
   title="童心未泯"
   description="保持好奇，永远出发。这里为探索与尝鲜而生。"
   keywords="Sai, 摄影, Web Design, UI Design, Frontend Development, Creative Designer"
 >
-  <div
-    class="relative site-container z-20  w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-0"
-  >
-    <div class="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-8 ">
-      <div class="relative w-full md:max-w-[420px] md:w-1/2 text-center sm:text-left sm:-mt-8">
-        <h1 class="mb-4">
+  <!-- 顶部 hero 区域 -->
+  <div class="relative site-container z-20 w-full mx-auto mt-8 px-4 md:mt-10 lg:mt-12 xl:px-0">
+    <div class="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-4">
+      <div class="relative w-full md:max-w-[420px] md:w-1/2 text-center sm:text-left sm:-mt-4">
+        <h1 class="mb-2">
           <AnimatedText
             content="Dream Big, Work Hard, Achieve More!"
             delay={0.1}
             duration={0.5}
             stagger={0.08}
-            class="text-5xl text-pri leading-tight md:text-4xl lg:text-6xl font-brand "
+            class="text-5xl text-pri leading-tight md:text-4xl lg:text-6xl font-brand"
           />
         </h1>
 
-        <div class="mb-2">
+        <div class="mb-1">
           <AnimatedText
             content="保持好奇，永远出发。这里为探索与尝鲜而生。"
             delay={0.3}
@@ -40,7 +27,7 @@ import Explore from "@/components/sections/Explore.astro";
           />
         </div>
 
-        <div class="mb-4">
+        <div class="mb-2">
           <AnimatedText
             content="听风知远意 望潮见心澜"
             delay={0.5}
@@ -50,69 +37,39 @@ import Explore from "@/components/sections/Explore.astro";
           />
         </div>
 
-        <div
-          class=""
-          data-aos="fade-up-sm"
-          data-aos-delay="900"
-          data-aos-duration="500"
-          data-aos-once="true"
-        >
-          <Button url={siteConfig.social.twitter} type="fill" className="m-auto mt-4 text-center sm:text-left sm:m-0 sm:mt-6 max-w-[200px]">
+        <div data-aos="fade-up-sm" data-aos-delay="900" data-aos-duration="500" data-aos-once="true">
+          <Button url={siteConfig.social.twitter} type="fill" className="m-auto mt-2 sm:text-left sm:m-0 sm:mt-4 max-w-[200px]">
             Follow me on 𝕏
           </Button>
         </div>
 
-        <div
-          class="social mt-8 mb-8"
-          data-aos="fade-up-sm"
-          data-aos-delay="1000"
-          data-aos-duration="600"
-          data-aos-once="true"
-        >
-          <SocialCard displaySocialIds={[1, 2, 3,4]}/>
+        <div class="social mt-4 mb-4" data-aos="fade-up-sm" data-aos-delay="1000" data-aos-duration="600" data-aos-once="true">
+          <SocialCard displaySocialIds={[1,2,3,4]} />
         </div>
       </div>
-
-      {/* <div
-        class="relative justify-end w-full mt-16 md:flex md:pl-10 md:w-1/2 md:mt-0 md:translate-y-4 xl:translate-y-0"
-        data-aos="fade-left-sm"
-        data-aos-delay="300"
-        data-aos-duration="800"
-        data-aos-once="true"
-      >
-        <HeroCard
-          imageUrl="/assets/home/gradientshub.jpg"
-          title="Gradientshub"
-          link="https://gradientshub.com"
-        />
-      </div>
-      */}
     </div>
   </div>
 
-  {/* <section
-    class="mt-8 mb-6"
+  <!-- Featured Work -->
+  <section
+    class="mt-4 mb-4"
     data-aos="fade-up-sm"
     data-aos-delay="100"
     data-aos-duration="600"
     data-aos-once="true"
   >
-    <Explore title="浏 览 ↓"  />
-  </section>
-  */}
-
-  <section
-    class="mt-2 mb-6" data-aos="fade-up-sm"
-    data-aos-delay="100"
-    data-aos-duration="600"
-    data-aos-once="true"
-  >
-    <FeaturedWork title="精选作品 ↓" description="以创意为引，以镜头为笔，我记录每一个动人瞬间，让作品既打动人，也留下印记。" limit={5} />
+    <FeaturedWork
+      title="精选作品 ↓"
+      description="以创意为引，以镜头为笔，我记录每一个动人瞬间，让作品既打动人，也留下印记。"
+      limit={5}
+    />
   </section>
 
+  <!-- Blog Section -->
   <section
-    class="mt-2 mb-6" data-aos="fade-up-sm"
-    data-aos-delay="100"
+    class="mt-4 mb-4"
+    data-aos="fade-up-sm"
+    data-aos-delay="150"
     data-aos-duration="600"
     data-aos-once="true"
   >
@@ -122,5 +79,4 @@ import Explore from "@/components/sections/Explore.astro";
       showViewAllButton={true}
     />
   </section>
-
 </Layout>
