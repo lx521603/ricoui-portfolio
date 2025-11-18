@@ -6,7 +6,7 @@ export const siteConfig = {
 	title: "Ricoui Portfolio",
 	author: "Ricoui",
 	url: SITE_URL,
-	mail: "hello@ricoui.com",
+	mail: "x@sai.st",
 	// resume add your resume file path here: /assets/resume.pdf
 	resume: "https://ricoui.com/",
 	utm: {
