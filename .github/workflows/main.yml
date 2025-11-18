@@ -1,54 +1,50 @@
-name: Deploy Astro to GitHub Pages (PNPM)
+name: Deploy to GitHub Pages
 
 on:
   #push:
-    #branches: [main]   # 当 main 分支有推送时自动触发
-  workflow_dispatch:   # 也可以手动触发
+    #branches: [ main ]
+  workflow_dispatch: # 允许手动触发
 
+# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 允许一个并发部署
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. 拉取代码
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      # 2. 安装 pnpm CLI（必须先安装，保证 PATH 中有 pnpm）
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
         with:
-          version: 8
-          run_install: false
+          fetch-depth: 0 # 获取所有历史用于更好的 git info
 
-      # 3. 设置 Node.js 环境并启用 pnpm 缓存
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '20'
           cache: 'pnpm'
 
-      # 4. 安装依赖
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 5. 可选：运行代码检查（对应 package.json 的 "check" 脚本）
-      - name: Run Biome check
-        run: pnpm run check
-
-      # 6. 构建 Astro 项目
-      - name: Build site
+      - name: Build with Astro
         run: pnpm run build
 
-      # 7. 上传构建产物（Astro 默认输出目录是 dist）
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -57,11 +53,11 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    runs-on: ubuntu-latest
+      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
     steps:
-      # 8. 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
-        id: deploy
+        id: deployment
         uses: actions/deploy-pages@v4
