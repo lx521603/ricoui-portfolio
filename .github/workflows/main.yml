@@ -1,8 +1,8 @@
 name: Deploy Astro to GitHub Pages (PNPM)
 
 on:
-  push:
-    branches: [main]   # 当 main 分支有推送时自动触发
+  #push:
+    #branches: [main]   # 当 main 分支有推送时自动触发
   workflow_dispatch:   # 也可以手动触发
 
 permissions:
