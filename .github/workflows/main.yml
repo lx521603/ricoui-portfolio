@@ -20,25 +20,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'  # 这很重要，启用 pnpm 缓存
+          node-version: '20' # 明确指定Node.js版本[citation:2][citation:9]
+          cache: 'pnpm' # 为pnpm启用缓存
 
-      # 🔧 添加 pnpm 安装步骤
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8     # 指定 pnpm 版本
+          version: 8 # 指定pnpm版本
 
-      - name: Install system dependencies for sharp
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libvips-dev
+      - name: Verify pnpm installation
+        run: pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
