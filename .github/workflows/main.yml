@@ -23,21 +23,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- START PNPM OPTIMIZATION ---
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          # 关键修改 1: 将 cache 设置为 pnpm
-          cache: pnpm
+          # 告诉 setup-node 缓存 PNPM 依赖
+          cache: pnpm 
 
+      # === 关键步骤：安装 PNPM 本身 ===
       - name: Install pnpm
-        # 关键修改 2: 显式安装 PNPM 包管理器
         uses: pnpm/action-setup@v3
         with:
-          version: 8 
-          run_install: false # 暂不运行安装，留给下一步
+          version: 8 # 推荐固定版本
+          run_install: false
+
+      - name: Install dependencies with pnpm
+        # 现在 pnpm 命令在 PATH 中可用
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        run: pnpm run build
+      
+      # ... 后续步骤
 
       - name: Install dependencies with pnpm
         # 关键修改 3: 使用 pnpm install 进行依赖安装
