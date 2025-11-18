@@ -10,6 +10,7 @@ interface Props {
   layout?: 'featured' | 'grid'; // featured is full width, grid is two columns
   index?: number;
   target?: string;       // Optional, default "_blank"
+  imageRatio?: '4/3' | '3/4' | 'auto'; // Optional, default '4/3'
 }
 
 const {
@@ -22,11 +23,17 @@ const {
   isShow = true,
   layout = 'grid',
   index = 0,
-  target = "_blank"
+  target = "_blank",
+  imageRatio = '4/3'
 }: Props = Astro.props;
 
 // Generate stable id for each video for precise playback control
 const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
+
+// 根据 imageRatio 生成 Tailwind 类
+const imageAspectClass = imageRatio === 'auto'
+  ? 'w-full h-auto'
+  : `aspect-[${imageRatio}] w-full`;
 ---
 
 <article
@@ -40,9 +47,9 @@ const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toL
   data-aos-once="true"
 >
   <!-- Image/video container -->
-  <div class="relative overflow-hidden aspect-[4/3] rounded-xl">
+  <div class={`relative overflow-hidden rounded-xl ${imageRatio !== 'auto' ? imageAspectClass : ''}`}>
     {video ? (
-      <!-- Video -->
+      <!-- Video保持不动 -->
       <video
         id={videoId}
         src={video}
@@ -66,7 +73,7 @@ const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toL
       <img
         src={image}
         alt={name ?? ''}
-        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"
+        class={imageRatio === 'auto' ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105' : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105'}
         loading="lazy"
       />
     )}
