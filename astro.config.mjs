@@ -13,7 +13,7 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://portfolio.ricoui.com
 // https://astro.build/config
 export default defineConfig({
   site: siteUrl,
-  base: '/ricoui-portfolio',
+  base: '/',
   envPrefix: 'PUBLIC_',
   vite: {
     plugins: [tailwindcss()],
