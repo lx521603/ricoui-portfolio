@@ -3,6 +3,7 @@
  * Extended Blog Card with dynamic aspect ratio
  *
  * Props:
+ *   content: object (博客文章数据)
  *   layout?: "vertical" | "horizontal"
  *   data-aos?: string
  *   data-aos-delay?: string | number
@@ -25,7 +26,8 @@ const {
   img,
   img_alt,
   slug,
-  link
+  link,
+  video // optional
 } = content;
 
 const formattedDate = new Date(publishDate).toLocaleDateString('en-US', {
@@ -49,9 +51,7 @@ const ratioMap: Record<string, string> = {
   "1:1": "aspect-square",
 };
 
-// Default logic:
-//   vertical → 4:3
-//   horizontal → 3:4
+// Default logic: vertical → 4:3, horizontal → 3:4
 let computedRatio = isHorizontal ? "3:4" : "4:3";
 
 // Allow user override
@@ -59,38 +59,60 @@ if (mediaRatio) computedRatio = mediaRatio;
 
 // If ratio = auto → no aspect class
 const useAspect = computedRatio !== "auto";
-const aspectClass = useAspect ? (ratioMap[computedRatio] ?? ratioMap["4:3"]) : "";
+const aspectClass = useAspect ? (ratioMap[computedRatio] ?? ratioMap["4/3"]) : "";
 
-// image class depends on ratio
-const imgClass =
+// image/video class depends on ratio
+const mediaClass =
   computedRatio === "auto"
     ? "w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
     : "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105";
+
+// Generate video ID if video exists
+const videoId = video ? `blogcard-video-${slug.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}` : null;
 ---
 
 <article
   class:list={[
-    "group relative overflow-hidden bg-bg-secondary border-primary/35 p-4 dark:bg-neutral-900 rounded-2xl backdrop-blur-sm transition-all duration-500" ,
+    "group relative overflow-hidden bg-bg-secondary border-primary/35 p-4 dark:bg-neutral-900 rounded-2xl backdrop-blur-sm transition-all duration-500",
     { "md:flex md:items-center": isHorizontal }
   ]}
   data-aos={dataAos}
   data-aos-delay={dataAosDelay}
 >
 
-  <!-- Media (image) -->
+  <!-- Media (image or video) -->
   <div
     class:list={[
       "relative overflow-hidden rounded-2xl dark:border-neutral-800/60 border-4 border-white",
       isHorizontal ? "md:w-1/2" : "",
-      aspectClass,
+      aspectClass
     ]}
   >
-    {img ? (
+    {video ? (
+      <video
+        id={videoId}
+        src={video}
+        poster={img}
+        autoplay
+        loop
+        muted
+        playsinline
+        webkit-playsinline
+        preload="auto"
+        controls={false}
+        disablepictureinpicture
+        controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"
+        class={mediaClass}
+      >
+        <source src={video} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    ) : img ? (
       <img
         src={img}
         alt={img_alt || `Related to ${title}`}
         loading="lazy"
-        class={imgClass}
+        class={mediaClass}
       />
     ) : (
       <div class="w-full h-full flex items-center justify-center bg-neutral-200 dark:bg-neutral-700">
@@ -197,3 +219,69 @@ const imgClass =
   </div>
 
 </article>
+
+{video && (
+  <script define:vars={{ videoId }}>
+    (function() {
+      const video = document.getElementById(videoId);
+      if (!video || !(video instanceof HTMLVideoElement)) return;
+      let isPlaying = false, observer = null, playAttempts = 0;
+      const MAX_PLAY_ATTEMPTS = 3;
+
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline','');
+      video.setAttribute('webkit-playsinline','');
+      video.removeAttribute('controls');
+
+      function tryPlay() {
+        if (isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return;
+        playAttempts++;
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.then(()=>{isPlaying=true; playAttempts=0;})
+            .catch((error)=>{isPlaying=false;
+              if (error?.name==='NotAllowedError'){handleUserInteraction();}});
+        }
+      }
+
+      function handleUserInteraction() {
+        ['touchstart','click','scroll'].forEach(ev=>{
+          document.addEventListener(ev,function onInteraction(){
+            tryPlay();
+            ['touchstart','click','scroll'].forEach(event=>document.removeEventListener(event,onInteraction));
+          },{once:true,passive:true});
+        });
+      }
+
+      function setupIntersectionObserver() {
+        observer = new IntersectionObserver((entries)=>{
+          entries.forEach(entry=>{
+            if(entry.isIntersecting){if(video.paused){playAttempts=0;tryPlay();}}
+            else{if(!video.paused){video.pause();isPlaying=false;}}
+          });
+        }, {root:null, rootMargin:'50px', threshold:0.1});
+        observer.observe(video);
+      }
+
+      function handleVisibilityChange() {
+        if(!document.hidden && !video.paused){
+          const rect = video.getBoundingClientRect();
+          if(rect.top<window.innerHeight && rect.bottom>0){playAttempts=0; tryPlay();}
+        }
+      }
+
+      function init() {
+        if(video.readyState>=2){tryPlay();}
+        else{video.addEventListener('loadeddata',tryPlay,{once:true});}
+        setupIntersectionObserver();
+        document.addEventListener('visibilitychange',handleVisibilityChange);
+      }
+
+      function cleanup(){if(observer){observer.disconnect();observer=null;}document.removeEventListener('visibilitychange',handleVisibilityChange);}
+
+      init();
+      document.addEventListener('astro:before-preparation',cleanup,{once:true});
+    })();
+  </script>
+)}
