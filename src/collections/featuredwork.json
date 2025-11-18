@@ -14,7 +14,7 @@
 		"image": "https://img.sorayt.cn/f/lgi6/vv1.jpg",
 		"url": "https://sai.st/blogs/wei-wei-zhi-bo"
 	},
-	{
+	{/*
 		"name": "Luon Models",
 		"description": "Company Website",
 		"tags": ["Company","Website","Branding"],
@@ -52,5 +52,5 @@
 		"tags": ["Inspiration","Web Collection"],
 		"image": "/assets/works/inspoweb.jpg",
 		"url": "https://inspoweb.com/"
-	}
+	}*/}
 ]
