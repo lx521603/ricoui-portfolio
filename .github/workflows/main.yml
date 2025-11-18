@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 明确指定Node.js版本[citation:2][citation:9]
+          node-version: '22' # 明确指定Node.js版本[citation:2][citation:9]
           cache: 'pnpm' # 为pnpm启用缓存
 
       - name: Setup pnpm
