@@ -13,7 +13,7 @@
  *  - layout?: 'featured' | 'grid'
  *  - index?: number
  *  - target?: string
- *  - mediaRatio?: '4:3'|'3:4'|'16:9'|'9:16'|'1:1'|'auto'  // default '4:3'
+ *  - mediaRatio?: '4:3'|'3:4'|'16:9'|'9:16'|'1:1'|'auto'  // default 'auto'
  *
  * This file is self-contained and only modifies this component.
  */
@@ -43,13 +43,13 @@ const {
   layout = 'grid',
   index = 0,
   target = "_blank",
-  mediaRatio = '4:3'
+  mediaRatio = 'auto'
 }: Props = Astro.props;
 
-// Generate stable id for each video for precise playback control
+// Generate stable id for each video
 const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
 
-// ratio -> tailwind aspect class mapping
+// aspect-ratio mapping (used only if not 'auto')
 const ratioMap: Record<string, string> = {
   "4:3": "aspect-[4/3]",
   "3:4": "aspect-[3/4]",
@@ -58,11 +58,10 @@ const ratioMap: Record<string, string> = {
   "1:1": "aspect-square",
 };
 
-// compute classes. for 'auto' we don't use aspect-[] on container
+// compute classes
 const useAspect = mediaRatio !== 'auto';
 const aspectClass = useAspect ? (ratioMap[mediaRatio] ?? ratioMap['4:3']) : '';
-// when auto: image uses object-contain & h-auto; else w-full h-full object-cover
-const imgClass = mediaRatio === 'auto'
+const mediaClass = mediaRatio === 'auto'
   ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105'
   : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105';
 ---
@@ -81,10 +80,9 @@ const imgClass = mediaRatio === 'auto'
   <!-- Image / Video container -->
   <div class:list={[
     "relative overflow-hidden rounded-xl",
-    aspectClass // empty if mediaRatio === 'auto'
+    aspectClass
   ]}>
     {video ? (
-      <!-- Video (kept full original logic/attributes) -->
       <video
         id={videoId}
         src={video}
@@ -98,25 +96,24 @@ const imgClass = mediaRatio === 'auto'
         controls={false}
         disablepictureinpicture
         controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"
-        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        class={mediaClass}
       >
         <source src={video} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
     ) : (
-      <!-- Image -->
       <img
         src={image}
         alt={name ?? ''}
-        class={imgClass + " hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"}
+        class={mediaClass + " hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"}
         loading="lazy"
       />
     )}
 
-    <!-- Gradient overlay shown on hover -->
+    <!-- Gradient overlay -->
     <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
-    <!-- Link button shown on hover -->
+    <!-- Link hover button -->
     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
       <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/95 backdrop-blur-sm shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 group-hover:scale-110">
         <svg
@@ -138,12 +135,11 @@ const imgClass = mediaRatio === 'auto'
     </div>
   </div>
 
-  <!-- Content area -->
+  <!-- Content -->
   <div class:list={[
     "px-1 pt-6 pb-2",
     layout === 'featured' ? "md:px-1 md:pt-6 md:pb-2" : ""
   ]}>
-    <!-- Title and link icon -->
     <div class="flex items-start justify-between gap-3 mb-3">
       <h3 class:list={[
         "text-neutral-900 dark:text-white leading-tight font-brand transition-colors duration-300 group-hover:text-primary dark:group-hover:text-primary-light",
@@ -152,7 +148,6 @@ const imgClass = mediaRatio === 'auto'
         {name}
       </h3>
 
-      <!-- Link icon -->
       <div class="flex-shrink-0 mt-1">
         <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light transition-all duration-300 group-hover:bg-primary dark:group-hover:bg-primary-light group-hover:text-white dark:group-hover:text-neutral-900 group-hover:rotate-45">
           <svg
@@ -173,7 +168,6 @@ const imgClass = mediaRatio === 'auto'
       </div>
     </div>
 
-    <!-- Tags -->
     {tags && tags.length > 0 && (
       <div class="flex flex-wrap gap-1.5 mb-3">
         {tags.map((tag) => (
@@ -184,7 +178,6 @@ const imgClass = mediaRatio === 'auto'
       </div>
     )}
 
-    <!-- Description -->
     {description && (
       <p class:list={[
         "text-neutral-600 dark:text-neutral-400 leading-relaxed",
@@ -195,7 +188,7 @@ const imgClass = mediaRatio === 'auto'
     )}
   </div>
 
-  <!-- Link overlay for entire card -->
+  <!-- Full card link -->
   <a
     href={url}
     target={target}
@@ -208,140 +201,66 @@ const imgClass = mediaRatio === 'auto'
 
 {video && (
   <script define:vars={{ videoId }}>
-    // Video playback control (kept robust; identical behavior to original)
     (function() {
-      'use strict';
-
       const video = document.getElementById(videoId);
       if (!video || !(video instanceof HTMLVideoElement)) return;
-
-      // State management
-      let isPlaying = false;
-      let observer = null;
-      let playAttempts = 0;
+      let isPlaying = false, observer = null, playAttempts = 0;
       const MAX_PLAY_ATTEMPTS = 3;
 
-      // Force set mobile playback attributes
       video.muted = true;
       video.playsInline = true;
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
+      video.setAttribute('playsinline','');
+      video.setAttribute('webkit-playsinline','');
       video.removeAttribute('controls');
 
-      /**
-       * Try to play video (with retry limit)
-       */
       function tryPlay() {
         if (isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return;
-
         playAttempts++;
-
         const playPromise = video.play();
-
         if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              isPlaying = true;
-              playAttempts = 0;
-            })
-            .catch((error) => {
-              isPlaying = false;
-              console.debug(`Video autoplay attempt ${playAttempts} failed:`, error && error.name);
-
-              // If user gesture is required, set up a one-time interaction listener
-              if (error && error.name === 'NotAllowedError') {
-                handleUserInteraction();
-              }
-            });
+          playPromise.then(()=>{isPlaying=true; playAttempts=0;})
+            .catch((error)=>{isPlaying=false;
+              if (error?.name==='NotAllowedError'){handleUserInteraction();}});
         }
       }
 
-      /**
-       * Wait for a user interaction to retry playback (mobile)
-       */
       function handleUserInteraction() {
-        const interactionEvents = ['touchstart', 'click', 'scroll'];
-
-        function onInteraction() {
-          tryPlay();
-          interactionEvents.forEach(event => {
-            document.removeEventListener(event, onInteraction);
-          });
-        }
-
-        interactionEvents.forEach(event => {
-          document.addEventListener(event, onInteraction, { once: true, passive: true });
+        ['touchstart','click','scroll'].forEach(ev=>{
+          document.addEventListener(ev,function onInteraction(){
+            tryPlay();
+            ['touchstart','click','scroll'].forEach(event=>document.removeEventListener(event,onInteraction));
+          },{once:true,passive:true});
         });
       }
 
-      /**
-       * IntersectionObserver to play/pause based on viewport
-       */
       function setupIntersectionObserver() {
-        observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                if (video.paused) {
-                  playAttempts = 0;
-                  tryPlay();
-                }
-              } else {
-                if (!video.paused) {
-                  video.pause();
-                  isPlaying = false;
-                }
-              }
-            });
-          },
-          {
-            root: null,
-            rootMargin: '50px',
-            threshold: 0.1
-          }
-        );
-
+        observer = new IntersectionObserver((entries)=>{
+          entries.forEach(entry=>{
+            if(entry.isIntersecting){if(video.paused){playAttempts=0;tryPlay();}}
+            else{if(!video.paused){video.pause();isPlaying=false;}}
+          });
+        }, {root:null, rootMargin:'50px', threshold:0.1});
         observer.observe(video);
       }
 
-      /**
-       * Handle page visibility changes
-       */
       function handleVisibilityChange() {
-        if (!document.hidden && !video.paused) {
+        if(!document.hidden && !video.paused){
           const rect = video.getBoundingClientRect();
-          const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-          if (isInViewport) {
-            playAttempts = 0;
-            tryPlay();
-          }
+          if(rect.top<window.innerHeight && rect.bottom>0){playAttempts=0; tryPlay();}
         }
       }
 
-      // Initialize
       function init() {
-        if (video.readyState >= 2) {
-          tryPlay();
-        } else {
-          video.addEventListener('loadeddata', tryPlay, { once: true });
-        }
-
+        if(video.readyState>=2){tryPlay();}
+        else{video.addEventListener('loadeddata',tryPlay,{once:true});}
         setupIntersectionObserver();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('visibilitychange',handleVisibilityChange);
       }
 
-      function cleanup() {
-        if (observer) {
-          observer.disconnect();
-          observer = null;
-        }
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      }
+      function cleanup(){if(observer){observer.disconnect();observer=null;}document.removeEventListener('visibilitychange',handleVisibilityChange);}
 
       init();
-
-      // Cleanup on Astro view transitions / navigation
-      document.addEventListener('astro:before-preparation', cleanup, { once: true });
+      document.addEventListener('astro:before-preparation',cleanup,{once:true});
     })();
   </script>
 )}
