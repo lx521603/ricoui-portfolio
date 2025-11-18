@@ -18,25 +18,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22' # 明确指定Node.js版本[citation:2][citation:9]
-          cache: 'pnpm' # 为pnpm启用缓存
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '20' # 建议指定版本
+      cache: 'pnpm' # 启用pnpm缓存, 提升安装速度
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9 # 指定pnpm版本
+  - name: Setup pnpm 
+    uses: pnpm/action-setup@v4
+    # 这里不需要 with 参数，默认就会安装pnpm并添加到PATH
 
-      - name: Verify pnpm installation
-        run: pnpm --version
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  - name: Install dependencies
+    run: pnpm install --frozen-lockfile
 
       - name: Build with Astro
         run: pnpm run build
