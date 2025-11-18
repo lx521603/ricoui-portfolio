@@ -1,10 +1,10 @@
 [
-  {
+	{
 		"name": "薇薇夜景人像",
 		"description": "薇薇夜景人像",
 		"tags": ["保山", "青龙街","人像"],
 		"image": "https://img.sorayt.cn/f/v0h6/DSC00763.BnP4sFeo.jpg",
-		"url": "https://sai.st/blogs/bao-shan-qing-long-jie-jie-tou-she-ying",
+		"url": "/blog/web-design-style-guide-brutalism/",
 		"isShow": true
 	},
 	{
@@ -12,6 +12,6 @@
 		"description": "薇薇直播",
 		"tags": ["保山","直播","工作"],
 		"image": "https://img.sorayt.cn/f/lgi6/vv1.jpg",
-		"url": "https://sai.st/blogs/wei-wei-zhi-bo"
+		"url": "/blogs/shot-wwzb"
 	}
 ]
