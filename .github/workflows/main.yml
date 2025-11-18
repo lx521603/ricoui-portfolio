@@ -3,15 +3,13 @@ name: Deploy to GitHub Pages
 on:
   #push:
     #branches: [ main ]
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 允许一个并发部署
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -23,18 +21,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取所有历史用于更好的 git info
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          cache: 'pnpm'  # 这很重要，启用 pnpm 缓存
 
+      # 🔧 添加 pnpm 安装步骤
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8     # 指定 pnpm 版本
+
+      - name: Install system dependencies for sharp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
