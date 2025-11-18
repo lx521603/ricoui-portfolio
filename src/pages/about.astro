@@ -278,47 +278,7 @@ const filtered = headings.filter(h => h.depth <= 3);
           </div>
         </section>
 
-        <div class="w-full border-b-1 border-dashed border-b-gray-200 dark:border-b-neutral-700 mt-12 mb-12"></div>
-      <section class="experience">
-        <h2
-          id="experience"
-          class="mt-12 mb-4 text-[28px] text-neutral-800  dark:text-neutral-200 font-brand"
-          data-aos="fade-up-xs"
-          data-aos-duration="500"
-          data-aos-once="true"
-        >
-          相关经验
-        </h2>
-        <div
-          class="px-5 py-10"
-          data-aos="fade-up-xs"
-          data-aos-delay="100"
-          data-aos-duration="600"
-          data-aos-once="true"
-        >
-          {
-            experiences.map((experience, index) => {
-              return (
-                <div
-                  class="pb-10 border-l border-dashed border-gray-200 last:border-l-0 dark:border-neutral-500"
-                  data-aos="fade-up-xs"
-                  data-aos-delay={200 + (index * 100)}
-                  data-aos-duration="500"
-                  data-aos-once="true"
-                >
-                  <AboutExperience
-                    dates={experience.dates}
-                    role={experience.role}
-                    company={experience.company}
-                    description={experience.description}
-                    logo={experience.logo}
-                  />
-                </div>
-              )
-            })
-          }
-        </div>
-      </section>
+        
         <div class="w-full border-b-1 border-dashed border-b-gray-200 dark:border-b-neutral-700 mt-4 mb-8"></div>
       <section>
         <h2
