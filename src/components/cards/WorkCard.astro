@@ -1,16 +1,35 @@
 ---
+/**
+ * Complete WorkCard.astro
+ *
+ * Props:
+ *  - name: string (required)
+ *  - image: string (required)  // poster for video or image src
+ *  - url: string (required)
+ *  - description?: string
+ *  - tags?: string[]
+ *  - video?: string   // optional video src
+ *  - isShow?: boolean // optional
+ *  - layout?: 'featured' | 'grid'
+ *  - index?: number
+ *  - target?: string
+ *  - mediaRatio?: '4:3'|'3:4'|'16:9'|'9:16'|'1:1'|'auto'  // default '4:3'
+ *
+ * This file is self-contained and only modifies this component.
+ */
+
 interface Props {
-  name: string;          // Required
-  image: string;         // Required
-  url: string;           // Required
-  description?: string;  // Optional
-  tags?: string[];       // Optional
-  video?: string;        // Optional
-  isShow?: boolean;      // Optional, default true
-  layout?: 'featured' | 'grid'; // featured is full width, grid is two columns
+  name: string;
+  image: string;
+  url: string;
+  description?: string;
+  tags?: string[];
+  video?: string;
+  isShow?: boolean;
+  layout?: 'featured' | 'grid';
   index?: number;
-  target?: string;       // Optional, default "_blank"
-  imageRatio?: '4/3' | '3/4' | 'auto'; // Optional, default '4/3'
+  target?: string;
+  mediaRatio?: '4:3' | '3:4' | '16:9' | '9:16' | '1:1' | 'auto';
 }
 
 const {
@@ -24,16 +43,28 @@ const {
   layout = 'grid',
   index = 0,
   target = "_blank",
-  imageRatio = '4/3'
+  mediaRatio = '4:3'
 }: Props = Astro.props;
 
 // Generate stable id for each video for precise playback control
 const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
 
-// 根据 imageRatio 生成 Tailwind 类
-const imageAspectClass = imageRatio === 'auto'
-  ? 'w-full h-auto'
-  : `aspect-[${imageRatio}] w-full`;
+// ratio -> tailwind aspect class mapping
+const ratioMap: Record<string, string> = {
+  "4:3": "aspect-[4/3]",
+  "3:4": "aspect-[3/4]",
+  "16:9": "aspect-[16/9]",
+  "9:16": "aspect-[9/16]",
+  "1:1": "aspect-square",
+};
+
+// compute classes. for 'auto' we don't use aspect-[] on container
+const useAspect = mediaRatio !== 'auto';
+const aspectClass = useAspect ? (ratioMap[mediaRatio] ?? ratioMap['4:3']) : '';
+// when auto: image uses object-contain & h-auto; else w-full h-full object-cover
+const imgClass = mediaRatio === 'auto'
+  ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105'
+  : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105';
 ---
 
 <article
@@ -45,11 +76,15 @@ const imageAspectClass = imageRatio === 'auto'
   data-aos-duration="500"
   data-aos-delay={index * 100}
   data-aos-once="true"
+  aria-hidden={!isShow}
 >
-  <!-- Image/video container -->
-  <div class={`relative overflow-hidden rounded-xl ${imageRatio !== 'auto' ? imageAspectClass : ''}`}>
+  <!-- Image / Video container -->
+  <div class:list={[
+    "relative overflow-hidden rounded-xl",
+    aspectClass // empty if mediaRatio === 'auto'
+  ]}>
     {video ? (
-      <!-- Video保持不动 -->
+      <!-- Video (kept full original logic/attributes) -->
       <video
         id={videoId}
         src={video}
@@ -73,7 +108,7 @@ const imageAspectClass = imageRatio === 'auto'
       <img
         src={image}
         alt={name ?? ''}
-        class={imageRatio === 'auto' ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105' : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105'}
+        class={imgClass + " hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"}
         loading="lazy"
       />
     )}
@@ -173,73 +208,140 @@ const imageAspectClass = imageRatio === 'auto'
 
 {video && (
   <script define:vars={{ videoId }}>
+    // Video playback control (kept robust; identical behavior to original)
     (function() {
       'use strict';
+
       const video = document.getElementById(videoId);
       if (!video || !(video instanceof HTMLVideoElement)) return;
+
+      // State management
       let isPlaying = false;
       let observer = null;
       let playAttempts = 0;
       const MAX_PLAY_ATTEMPTS = 3;
+
+      // Force set mobile playback attributes
       video.muted = true;
       video.playsInline = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
       video.removeAttribute('controls');
 
+      /**
+       * Try to play video (with retry limit)
+       */
       function tryPlay() {
         if (isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return;
+
         playAttempts++;
+
         const playPromise = video.play();
+
         if (playPromise !== undefined) {
           playPromise
-            .then(() => { isPlaying = true; playAttempts = 0; })
+            .then(() => {
+              isPlaying = true;
+              playAttempts = 0;
+            })
             .catch((error) => {
               isPlaying = false;
-              if (error.name === 'NotAllowedError') handleUserInteraction();
+              console.debug(`Video autoplay attempt ${playAttempts} failed:`, error && error.name);
+
+              // If user gesture is required, set up a one-time interaction listener
+              if (error && error.name === 'NotAllowedError') {
+                handleUserInteraction();
+              }
             });
         }
       }
 
+      /**
+       * Wait for a user interaction to retry playback (mobile)
+       */
       function handleUserInteraction() {
-        const events = ['touchstart', 'click', 'scroll'];
-        function onInteraction() { tryPlay(); events.forEach(e=>document.removeEventListener(e,onInteraction)); }
-        events.forEach(e=>document.addEventListener(e,onInteraction,{once:true,passive:true}));
+        const interactionEvents = ['touchstart', 'click', 'scroll'];
+
+        function onInteraction() {
+          tryPlay();
+          interactionEvents.forEach(event => {
+            document.removeEventListener(event, onInteraction);
+          });
+        }
+
+        interactionEvents.forEach(event => {
+          document.addEventListener(event, onInteraction, { once: true, passive: true });
+        });
       }
 
-      function setupObserver() {
+      /**
+       * IntersectionObserver to play/pause based on viewport
+       */
+      function setupIntersectionObserver() {
         observer = new IntersectionObserver(
-          (entries)=>{ entries.forEach((entry)=>{
-            if(entry.isIntersecting){ if(video.paused){ playAttempts=0; tryPlay(); } }
-            else { if(!video.paused){ video.pause(); isPlaying=false; } }
-          }); },
-          { root:null, rootMargin:'50px', threshold:0.1 }
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                if (video.paused) {
+                  playAttempts = 0;
+                  tryPlay();
+                }
+              } else {
+                if (!video.paused) {
+                  video.pause();
+                  isPlaying = false;
+                }
+              }
+            });
+          },
+          {
+            root: null,
+            rootMargin: '50px',
+            threshold: 0.1
+          }
         );
+
         observer.observe(video);
       }
 
+      /**
+       * Handle page visibility changes
+       */
       function handleVisibilityChange() {
-        if(!document.hidden && !video.paused){
-          const rect=video.getBoundingClientRect();
-          const inViewport = rect.top<window.innerHeight && rect.bottom>0;
-          if(inViewport){ playAttempts=0; tryPlay(); }
+        if (!document.hidden && !video.paused) {
+          const rect = video.getBoundingClientRect();
+          const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+          if (isInViewport) {
+            playAttempts = 0;
+            tryPlay();
+          }
         }
       }
 
+      // Initialize
       function init() {
-        if(video.readyState>=2){ tryPlay(); }
-        else{ video.addEventListener('loadeddata',tryPlay,{once:true}); }
-        setupObserver();
-        document.addEventListener('visibilitychange',handleVisibilityChange);
+        if (video.readyState >= 2) {
+          tryPlay();
+        } else {
+          video.addEventListener('loadeddata', tryPlay, { once: true });
+        }
+
+        setupIntersectionObserver();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
       }
 
       function cleanup() {
-        if(observer){ observer.disconnect(); observer=null; }
-        document.removeEventListener('visibilitychange',handleVisibilityChange);
+        if (observer) {
+          observer.disconnect();
+          observer = null;
+        }
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
       }
 
       init();
-      document.addEventListener('astro:before-preparation',cleanup,{once:true});
+
+      // Cleanup on Astro view transitions / navigation
+      document.addEventListener('astro:before-preparation', cleanup, { once: true });
     })();
   </script>
 )}
