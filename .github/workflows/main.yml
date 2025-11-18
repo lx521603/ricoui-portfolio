@@ -1,18 +1,16 @@
 name: Deploy Astro to GitHub Pages (PNPM)
 
 on:
+  # 当 main 分支有推送时触发，也可以手动触发
   #push:
-    #branches: [main] # 当主分支有代码推送时触发
-  # 也可以手动触发部署
+    #branches: [main]
   workflow_dispatch:
 
-# 部署到 GitHub Pages 所需的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 避免部署任务重叠
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -23,51 +21,42 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        # 如果您的仓库很大，可以考虑使用 'fetch-depth: 0' 来获取完整历史记录，但默认 v4 即可
 
-      # --- PNPM 和 Node.js 设置 ---
-      
-      # 1. 设置 Node.js 环境并配置 PNPM 缓存
+      # 设置 Node.js 环境并启用 pnpm 缓存
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          # 关键：指定使用 pnpm 作为缓存键，查找 pnpm-lock.yaml
-          cache: pnpm 
+          cache: 'pnpm'
 
-      # 2. 安装 PNPM 命令行工具
-      - name: Install pnpm CLI
+      # 安装 pnpm CLI
+      - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8 # 推荐固定版本，以确保环境一致性
-          run_install: false # 避免在此步骤中意外运行安装
+          version: 8
+          run_install: false
 
-      # 3. 运行依赖安装 (现在 pnpm 命令在 PATH 中可用)
-      - name: Install dependencies with pnpm
+      # 安装依赖
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        # --frozen-lockfile 在 CI 环境中是最佳实践
 
-      # --- 构建和部署工件上传 ---
-      
+      # 构建 Astro 项目
       - name: Build site
-        # 确保使用 pnpm 执行构建脚本
         run: pnpm run build
 
+      # 上传构建产物
       - name: Upload artifact
-        # 上传 Astro 的默认输出目录 'dist'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist 
+          path: ./dist
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     runs-on: ubuntu-latest
-    # 依赖于 build job 成功完成
     needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
-
