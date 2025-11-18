@@ -1,44 +1,36 @@
-name: Deploy to GitHub Pages
+name: Deploy Astro site to GitHub Pages
 
 on:
+  # 推送到 main 就自动部署
   #push:
     #branches: [ main ]
+  # 支持手动运行
   workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: '20' # 建议指定版本
-      cache: 'pnpm' # 启用pnpm缓存, 提升安装速度
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  - name: Setup pnpm 
-    uses: pnpm/action-setup@v4
-    # 这里不需要 with 参数，默认就会安装pnpm并添加到PATH
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
-  - name: Install dependencies
-    run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Build with Astro
+      - name: Build
         run: pnpm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -46,12 +38,16 @@ jobs:
           path: ./dist
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    name: Deploy
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
