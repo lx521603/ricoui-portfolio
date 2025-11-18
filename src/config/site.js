@@ -19,12 +19,12 @@ export const siteConfig = {
 		description: "童心未泯",
 		keywords: "web designer, portfolio, design, code, personal website",
 		image: `${SITE_URL}/og.jpg`,
-		twitterHandle: "ricouii",
+		twitterHandle: "oniyt1980",
 	},
 	// social links
 	social:{
 		twitter: "https://x.com/oniyt1980",
-		twitterName: "ricouii",
+		twitterName: "oniyt1980",
 		github: "https://github.com/lx521603",
 		blog: "https://sai.st",
 		xiaohongshu:"https://www.xiaohongshu.com/user/profile/5f2b6903000000000101f51f"
