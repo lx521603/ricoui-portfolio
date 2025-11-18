@@ -30,7 +30,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8 # 指定pnpm版本
+          version: 9 # 指定pnpm版本
 
       - name: Verify pnpm installation
         run: pnpm --version
