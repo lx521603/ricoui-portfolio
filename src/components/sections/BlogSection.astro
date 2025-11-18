@@ -5,6 +5,7 @@ import BlogCard from "@/components/cards/BlogCard.astro";
 import SectionHeader from "@/components/elements/SectionHeader.astro";
 import Button from "@/components/ui/Button.astro";
 import AnimatedText from "@/components/ui/AnimatedText.astro";
+
 // 定义组件接收的属性
 const {
   title = "近期文章",
@@ -50,8 +51,6 @@ if (pagination.enable) {
 
 // 为每篇文章添加链接属性 - 创建新对象而不是修改原对象
 const postsWithLinks = posts.map(post => {
-  // 根据 Astro v5 官方文档，entry.id 就是条目的唯一标识符
-  // 直接使用 entry.id 生成 URL，对于 [...slug] 路由，id 已经是正确的路径
   const link = `/blog/${post.id}`;
   return {
     ...post,
@@ -77,14 +76,15 @@ const featuredPostWithLink = featuredPost ? {
   <section class="mb-16">
     <div class="site-container">
       <h2 class="text-3xl font-brand mb-6 text-neutral-800 dark:text-white">
-            <AnimatedText delay={0.75} stagger={0.08} content="精选" />
+        <AnimatedText delay={0.75} stagger={0.08} content="精选" />
       </h2>
-      <div class=" dark:from-neutral-900 dark:to-neutral-800 p-1 rounded-2xl ">
+      <div class="dark:from-neutral-900 dark:to-neutral-800 p-1 rounded-2xl">
         <BlogCard
           layout="horizontal"
           content={{ ...featuredPostWithLink.data, ...featuredPostWithLink }}
           data-aos="fade-up-sm"
           data-aos-delay="1000"
+          mediaRatio="auto"
         />
       </div>
     </div>
@@ -94,7 +94,7 @@ const featuredPostWithLink = featuredPost ? {
 <section>
   <div class="site-container space-y-10 md:space-y-16">
     {!listPage && title && (
-      <SectionHeader title={title}  description={description}/>
+      <SectionHeader title={title} description={description} />
     )}
 
     {/* 列表页标题 */}
@@ -110,6 +110,7 @@ const featuredPostWithLink = featuredPost ? {
           content={{ ...post.data, ...post }}
           data-aos={!pagination.enable && (Math.floor(index / 3) % 2 === 0 ? "fade-right-sm" : "fade-left-sm")}
           data-aos-delay={!pagination.enable && ((index % 3) + 1) * 200}
+          mediaRatio="auto"
         />
       ))}
     </div>
