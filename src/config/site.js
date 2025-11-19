@@ -6,7 +6,7 @@ export const siteConfig = {
 	title: "童心未泯",
 	author: "Sai",
 	url: SITE_URL,
-	mail: "x@sai.st",
+	mail: "x@oni.yt",
 	// resume add your resume file path here: /assets/resume.pdf
 	resume: "https://sai.st",
 	utm: {
