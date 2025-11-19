@@ -1,55 +1,36 @@
-// src/components/Weather.js
-"use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function Weather({ cities = [] }) {
-  const [data, setData] = useState([]);
-  const apiKey = import.meta.env.PUBLIC_WEATHER_API_KEY; // .env 里配置你的 API key
-  const apiBase = "https://api.openweathermap.org/data/2.5/weather";
+export default function WeatherCard({ city, apiKey }) {
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchWeather() {
-      const results = await Promise.all(
-        cities.map(async (city) => {
-          try {
-            const res = await fetch(`${apiBase}?q=${city}&units=metric&appid=${apiKey}`);
-            if (!res.ok) throw new Error(`Failed to fetch ${city}`);
-            const json = await res.json();
-            return {
-              city,
-              temp: json.main.temp,
-              weather: json.weather[0].description,
-            };
-          } catch (err) {
-            console.error(err);
-            return { city, temp: "-", weather: "获取失败" };
-          }
-        })
-      );
-      setData(results);
+      try {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`
+        );
+        const data = await res.json();
+        setWeather(data);
+      } catch (err) {
+        console.error("Weather fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchWeather();
-  }, [cities]);
+  }, [city, apiKey]);
+
+  if (loading) return <div>加载中...</div>;
+  if (!weather || weather.cod !== 200) return <div>无法获取 {city} 天气</div>;
 
   return (
-    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-      {data.map((item) => (
-        <div
-          key={item.city}
-          style={{
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            padding: "1rem",
-            minWidth: "120px",
-            textAlign: "center",
-          }}
-        >
-          <h3>{item.city}</h3>
-          <p>{item.temp} °C</p>
-          <p>{item.weather}</p>
-        </div>
-      ))}
+    <div className="p-4 bg-white dark:bg-dark rounded shadow">
+      <h3 className="font-bold text-lg">{city}</h3>
+      <p>温度: {weather.main.temp}°C</p>
+      <p>天气: {weather.weather[0].description}</p>
+      <p>湿度: {weather.main.humidity}%</p>
     </div>
   );
 }
