@@ -3,20 +3,18 @@ import PageLayout from "@/layouts/PageLayout.astro";
 import PageHeader from "@/components/elements/PageHeader.astro";
 import Weather from "@/components/Weather.jsx";
 
+// 你想展示的城市
 const cities = ["昆明", "大理", "保山", "腾冲", "芒市", "景洪"];
-const apiKey = import.meta.env.PUBLIC_OPENWEATHER_KEY;
 ---
 
-<PageLayout title="天气信息">
-  <section class="site-container m-auto min-h-[50vh] flex flex-col items-center justify-start py-10">
+<PageLayout title="工具 | 天气">
+  <section class="site-container m-auto min-h-[50vh] flex flex-col items-center justify-center">
     <PageHeader
       title="多地天气"
-      description="实时天气信息显示"
+      description="实时显示指定城市的天气情况"
     />
-
-    <div class="mt-6 w-full max-w-4xl">
-      <!-- 这里直接加载 Weather 组件 -->
-      <Weather client:load cities={cities} apiKey={apiKey} />
+    <div class="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <Weather client:load cities={cities} />
     </div>
   </section>
 </PageLayout>
