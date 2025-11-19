@@ -3,17 +3,17 @@ import PageLayout from "@/layouts/PageLayout.astro";
 import PageHeader from "@/components/elements/PageHeader.astro";
 import Weather from "@/components/Weather.jsx";
 
-// 你想展示的城市
-const cities = ["昆明", "大理", "保山", "腾冲", "芒市", "景洪"];
+const cities = ["昆明","大理","保山","腾冲","芒市","景洪"];
 ---
 
-<PageLayout title="工具 | 天气">
-  <section class="site-container m-auto min-h-[50vh] flex flex-col items-center justify-center">
+<PageLayout title="天气工具">
+  <section class="site-container m-auto min-h-[50vh] flex flex-col items-center justify-start py-10">
     <PageHeader
-      title="多地天气"
-      description="实时显示指定城市的天气情况"
+      title="多地天气工具"
+      description="显示指定城市的天气信息。未来可扩展世界时钟和汇率功能。"
     />
-    <div class="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    
+    <div class="mt-6 w-full">
       <Weather client:load cities={cities} />
     </div>
   </section>
