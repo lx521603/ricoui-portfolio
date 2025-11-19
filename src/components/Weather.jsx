@@ -1,42 +1,51 @@
-import { useEffect, useState } from "react";
+// src/components/Wearher.jsx
+import { useEffect, useState } from 'react';
 
-export default function Weather({ cities, apiKey }) {
+export default function Weather({ cities = ["昆明", "大理", "保山", "腾冲", "芒市", "景洪"] }) {
   const [data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchWeather() {
       const results = {};
-      for (let city of cities) {
+      for (const city of cities) {
         try {
-          const res = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`
-          );
+          const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
           const json = await res.json();
-          results[city] = json;
+          results[city] = {
+            temp: json.current_condition[0].temp_C,
+            desc: json.current_condition[0].weatherDesc[0].value,
+            icon: json.current_condition[0].weatherIconUrl[0].value
+          };
         } catch (err) {
           results[city] = { error: true };
+          console.error(`Weather fetch failed for ${city}`, err);
         }
       }
       setData(results);
+      setLoading(false);
     }
 
     fetchWeather();
-  }, [cities, apiKey]);
+  }, [cities]);
+
+  if (loading) return <div>加载中...</div>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {cities.map((city) => {
-        const cityData = data[city];
-        if (!cityData) return <div key={city}>加载中 {city}...</div>;
-        if (cityData.error || cityData.cod !== 200)
-          return <div key={city}>无法获取 {city} 天气</div>;
+        const info = data[city];
+        if (!info) return null;
+        if (info.error) return <div key={city} className="p-4 bg-red-100 rounded">无法获取 {city} 的天气</div>;
 
         return (
-          <div key={city} className="p-4 bg-white dark:bg-dark rounded shadow text-center">
-            <h3 className="font-bold text-lg">{city}</h3>
-            <p>温度: {cityData.main.temp}°C</p>
-            <p>天气: {cityData.weather[0].description}</p>
-            <p>湿度: {cityData.main.humidity}%</p>
+          <div key={city} className="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow flex items-center space-x-4">
+            <img src={info.icon} alt={info.desc} className="w-12 h-12" />
+            <div>
+              <div className="font-bold text-lg">{city}</div>
+              <div>{info.desc}</div>
+              <div className="text-sm">{info.temp}°C</div>
+            </div>
           </div>
         );
       })}
