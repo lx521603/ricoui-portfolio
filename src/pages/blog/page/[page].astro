@@ -8,14 +8,17 @@ export const POSTS_PER_PAGE = 6;
 
 export async function getStaticPaths() {
   const allPosts = await getCollection("post");
-  const posts = allPosts.filter(p => !p.data?.draft && !p.data?.featured);
+
+  // 移除 featured
+  const posts = allPosts.filter(p => !p.data.featured);
+
   const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
   return Array.from({ length: totalPages }, (_, i) => {
     const page = i + 1;
     return {
       params: { page: page.toString() },
-      props: { page: page.toString() }
+      props: { page: page.toString() },
     };
   });
 }
@@ -34,12 +37,10 @@ const currentPage = parseInt(page);
   <section class="relative z-20 mx-auto my-12 lg:px-0">
     <div class="mt-12">
       <BlogSection
+        title="All Articles"
         listPage={true}
         postsPerPage={POSTS_PER_PAGE}
-        pagination={{
-          enable: true,
-          currentPage
-        }}
+        pagination={{ enable: true, currentPage }}
       />
     </div>
   </section>
