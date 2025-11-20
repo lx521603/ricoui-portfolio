@@ -169,11 +169,11 @@ const mediaClass = mediaRatio === 'auto'
     </div>
 
     {tags && tags.length > 0 && (
-      <div class="flex flex-wrap gap-1.5 mb-3">
+      <div class="flex flex-wrap gap-1.5 mb-3 relative z-20">
         {tags.map((tag) => (
           <a
             href={`/tags/${tag}/`}
-            class="inline-flex items-center rounded-full bg-primary/8 dark:bg-primary/15 px-2.5 py-0.5 text-[10px] font-medium text-primary-dark dark:text-primary-light border border-primary/10 dark:border-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary/30 dark:hover:border-primary/40 transition-all duration-300 cursor-pointer"
+            class="inline-flex items-center rounded-full bg-primary/8 dark:bg-primary/15 px-2.5 py-0.5 text-[10px] font-medium text-primary-dark dark:text-primary-light border border-primary/10 dark:border-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary/30 dark:hover:border-primary/40 transition-all duration-300 cursor-pointer relative z-20"
             onclick="event.stopPropagation();"
           >
             {tag}
