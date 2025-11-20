@@ -48,8 +48,13 @@ const filtered = headings.filter(h => h.depth <= 2);
 				<!-- Tags -->
 				<div class="article-tags">
 					{entry.data.tags && entry.data.tags.length > 0 ? (
-						entry.data.tags.map(tag => (
-							<span class="article-tag letter-spacing-wide text-xs">{tag}</span>
+						entry.data.tags.map((tag) => (
+							<a 
+								href={`/tags/${tag}/`}
+								class="article-tag letter-spacing-wide text-xs hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+							>
+								{tag}
+							</a>
 						))
 					) : (
 						<span class="article-tag text-xs">Article</span>
