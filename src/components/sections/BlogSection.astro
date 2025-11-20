@@ -1,19 +1,32 @@
 ---
-import BlogCard from "@/components/cards/BlogCard.astro";
-import { getCollection } from "astro:content";
-
 const { allPosts = [], listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 } } = Astro.props;
 
-const sortedPosts = allPosts
-  .filter(p => !p.data.featured)
-  .sort((a: any, b: any) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+let paginatedPosts = allPosts;
 
-const start = (pagination.currentPage - 1) * postsPerPage;
-const paginatedPosts = sortedPosts.slice(start, start + postsPerPage);
+if (pagination.enable) {
+  const start = (pagination.currentPage - 1) * postsPerPage;
+  const end = start + postsPerPage;
+  paginatedPosts = allPosts.slice(start, end);
+}
 ---
 
-<div class="grid grid-cols-1 gap-8">
-  {paginatedPosts.map((post: any) => (
-    <BlogCard post={post} />
+<div class="grid grid-cols-1 gap-6">
+  {paginatedPosts.map(post => (
+    <article class="border rounded p-4">
+      <a href={`/blog/${post.id}`}>
+        <h2 class="font-bold text-xl">{post.data.title}</h2>
+      </a>
+      <p class="text-sm text-neutral-500">{post.data.description}</p>
+      <time class="text-xs text-neutral-400" datetime={post.data.publishDate.toISOString()}>
+        {post.data.publishDate.toLocaleDateString()}
+      </time>
+    </article>
   ))}
 </div>
+
+{pagination.enable && (
+  <div class="flex justify-between mt-6">
+    {pagination.currentPage > 1 && <a href={`/blog/page/${pagination.currentPage - 1}`} class="btn">Previous</a>}
+    {pagination.currentPage * postsPerPage < allPosts.length && <a href={`/blog/page/${pagination.currentPage + 1}`} class="btn">Next</a>}
+  </div>
+)}
