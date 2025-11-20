@@ -1,45 +1,36 @@
 ---
+import Layout from "@/layouts/Layout.astro";
+import PageHeader from "@/components/elements/PageHeader.astro";
+import BlogSection from "@/components/sections/BlogSection.astro";
 import { getCollection } from "astro:content";
-import BlogCard from "@/components/cards/BlogCard.astro";
-import SectionHeader from "@/components/elements/SectionHeader.astro";
 
-const { tag } = Astro.params;
-
-// 获取所有文章
 const allPosts = await getCollection("post");
 
-// 过滤：文章的 tags 包含当前 tag
-const filteredPosts = allPosts.filter(
-  (p) => p.data.tags && p.data.tags.includes(tag)
-);
+const { tag } = Astro.params;
+if (!tag) return Astro.redirect("/404");
 
-// 添加 link 字段
-const postsWithLinks = filteredPosts.map(post => ({
-  ...post,
-  data: {
-    ...post.data,
-    link: `/blog/${post.id}`
-  }
-}));
+const postsWithTag = allPosts.filter(p => p.data.tags?.includes(tag));
+
+const POSTS_PER_PAGE = 6;
+const currentPage = 1;
 ---
 
-<section class="py-16">
-  <div class="site-container space-y-12">
-
-    <SectionHeader
-      title={`标签：${tag}`}
-      description={`共有 ${postsWithLinks.length} 篇文章`}
+<Layout title={`Tag: ${tag}`}>
+  <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
+    <PageHeader
+      title={`Tag: ${tag}`}
+      description={`查看所有包含标签 "${tag}" 的文章`}
     />
-
-    {postsWithLinks.length === 0 && (
-      <p class="text-neutral-500 dark:text-neutral-400">这个标签还没有文章。</p>
-    )}
-
-    <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-      {postsWithLinks.map((post) => (
-        <BlogCard content={{ ...post.data, ...post }} mediaRatio="auto" />
-      ))}
+  </section>
+  <section class="relative z-20 mx-auto my-12 lg:px-0">
+    <div class="mt-12">
+      <BlogSection
+        title=""
+        listPage={true}
+        postsPerPage={POSTS_PER_PAGE}
+        pagination={{ enable: true, currentPage }}
+        allPosts={postsWithTag}
+      />
     </div>
-
-  </div>
-</section>
+  </section>
+</Layout>
