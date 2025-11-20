@@ -2,22 +2,23 @@
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
-export async function getStaticPaths() {
+// 对于索引页面，不需要 getStaticPaths，直接使用 getStaticProps
+export async function getStaticProps() {
   const posts = await getCollection("post");
   
-  // 收集所有 tags 并统计 - 修复类型问题
-  const tagCounts: Record<string, number> = {};
+  // 收集所有 tags 并统计
+  const tagCounts = {};
   posts.forEach(post => {
-    if (post.data.tags) {
-      post.data.tags.forEach((tag: string) => {
+    if (post.data.tags && Array.isArray(post.data.tags)) {
+      post.data.tags.forEach(tag => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
     }
   });
   
-  // 按文章数量排序 - 修复类型问题
+  // 按文章数量排序
   const sortedTags = Object.entries(tagCounts)
-    .sort(([, a]: [string, number], [, b]: [string, number]) => (b as number) - (a as number))
+    .sort(([, a], [, b]) => b - a)
     .map(([tag, count]) => ({ tag, count }));
   
   return {
@@ -27,12 +28,7 @@ export async function getStaticPaths() {
   };
 }
 
-interface TagItem {
-  tag: string;
-  count: number;
-}
-
-const { tags } = Astro.props as { tags: TagItem[] };
+const { tags = [] } = Astro.props;
 ---
 
 <Layout title="Tags" description="Browse all tags">
@@ -40,26 +36,32 @@ const { tags } = Astro.props as { tags: TagItem[] };
     <div class="text-center">
       <h1 class="text-4xl font-bold mb-4">Tags</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-        Browse articles by tags
+         按标签浏览文章
       </p>
     </div>
     
     <div class="mt-12 max-w-4xl mx-auto">
-      <div class="flex flex-wrap gap-4 justify-center">
-        {tags.map(({ tag, count }: TagItem) => (
-          <a
-            href={`/tags/${tag}/`}
-            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
-          >
-            <span class="font-medium text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-              {tag}
-            </span>
-            <span class="ml-2 px-1.5 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400">
-              {count}
-            </span>
-          </a>
-        ))}
-      </div>
+      {tags.length > 0 ? (
+        <div class="flex flex-wrap gap-4 justify-center">
+          {tags.map(({ tag, count }) => (
+            <a
+              href={`/tags/${tag}/`}
+              class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
+            >
+              <span class="font-medium text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                {tag}
+              </span>
+              <span class="ml-2 px-1.5 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400">
+                {count}
+              </span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="text-center text-gray-500 dark:text-gray-400">
+          <p>没有找到标签</p>
+        </div>
+      )}
     </div>
   </section>
 </Layout>
