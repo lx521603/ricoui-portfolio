@@ -10,19 +10,17 @@ const currentPage = 1;
 <Layout title="Blog">
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <PageHeader
-      title="Blog"
+      title="My Blog"
       description="保持好奇，永远出发。这里为探索与尝鲜而生!"
     />
   </section>
   <section class="relative z-20 mx-auto my-12 lg:px-0">
     <div class="mt-12">
       <BlogSection
+        title=""
         listPage={true}
         postsPerPage={POSTS_PER_PAGE}
-        pagination={{
-          enable: true,
-          currentPage
-        }}
+        pagination={{ enable: true, currentPage }}
       />
     </div>
   </section>
