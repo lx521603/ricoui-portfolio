@@ -40,14 +40,18 @@ const ratioMap = {
   "1:1": "aspect-square",
 };
 
-let computedRatio = isHorizontal ? "3:4" : "4:3";
+// 修复：默认使用自动比例，保持图片原始比例
+let computedRatio = "auto";
 if (mediaRatio) computedRatio = mediaRatio;
-const useAspect = computedRatio !== "auto";
-const aspectClass = useAspect ? (ratioMap[computedRatio] ?? ratioMap["4/3"]) : "";
+else if (isHorizontal) computedRatio = "3:4"; // 只有水平布局时才使用固定比例
 
+const useAspect = computedRatio !== "auto";
+const aspectClass = useAspect ? (ratioMap[computedRatio] ?? ratioMap["4:3"]) : "";
+
+// 修复：使用 object-contain 而不是 object-cover，保持图片完整比例
 const mediaClass = computedRatio === "auto"
   ? "w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
-  : "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105";
+  : "w-full h-full object-contain transition-transform duration-500 group-hover:scale-105";
 
 const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9]+/gi,'-').toLowerCase()}` : null;
 ---
@@ -62,7 +66,7 @@ const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9
 >
   <div
     class:list={[
-      "relative overflow-hidden rounded-2xl dark:border-neutral-800/60 border-4 border-white",
+      "relative overflow-hidden rounded-2xl dark:border-neutral-800/60 border-4 border-white bg-gray-100 dark:bg-gray-800 flex items-center justify-center",
       isHorizontal ? "md:w-1/2" : "",
       aspectClass
     ]}
