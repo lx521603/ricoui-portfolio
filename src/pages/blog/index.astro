@@ -7,32 +7,29 @@ import { getCollection } from "astro:content";
 const POSTS_PER_PAGE = 6;
 const currentPage = 1;
 
-// 获取所有文章
-let allPosts = await getCollection("post");
-
-// 排除草稿和特色文章
-allPosts = allPosts.filter(p => !p.data?.draft && !p.data?.featured);
-
-// 按发布日期排序
-allPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+const allPosts = (await getCollection("post"))
+  .filter(p => !p.data.featured) // 移除特色文章
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 ---
 
 <Layout title="Blog">
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <PageHeader
-      title="Blog"
+      title="My Blog"
       description="保持好奇，永远出发。这里为探索与尝鲜而生!"
     />
   </section>
-
   <section class="relative z-20 mx-auto my-12 lg:px-0">
     <div class="mt-12">
       <BlogSection
         title=""
-        allPosts={allPosts}
         listPage={true}
+        pagination={{
+          enable: true,
+          currentPage
+        }}
         postsPerPage={POSTS_PER_PAGE}
-        pagination={{ enable: true, currentPage }}
+        allPosts={allPosts}
       />
     </div>
   </section>
