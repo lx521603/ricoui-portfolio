@@ -1,45 +1,35 @@
 ---
-import { getCollection } from "astro:content";
-import BlogCard from "@/components/cards/BlogCard.astro";
+const { allPosts = [], listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 } } = Astro.props;
 
-const { listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 }, showViewAllButton = false } = Astro.props;
+// 默认排序：按发布日期降序
+let sortedPosts = allPosts.sort(
+  (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
+);
 
-let allPosts = await getCollection("post");
-allPosts = allPosts.filter(p => !p.data.featured);
-allPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
-
-let postsToShow = allPosts;
-if (listPage && pagination.enable) {
-  const start = (pagination.currentPage - 1) * postsPerPage;
-  postsToShow = allPosts.slice(start, start + postsPerPage);
-}
-
-const totalPages = Math.ceil(allPosts.length / postsPerPage);
+const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
+const startIndex = (pagination.currentPage - 1) * postsPerPage;
+const endIndex = startIndex + postsPerPage;
+const paginatedPosts = sortedPosts.slice(startIndex, endIndex);
 ---
 
-<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-  {postsToShow.map(post => (
-    <BlogCard
-      title={post.data.title}
-      description={post.data.description}
-      img={post.data.img}
-      img_alt={post.data.img_alt}
-      link={`/blog/${post.id}`}
-      tags={post.data.tags || []}
-    />
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+  {paginatedPosts.map(post => (
+    <div class="blog-card">
+      <a href={`/blog/${post.id}`}>
+        <h2 class="blog-card-title">{post.data.title}</h2>
+        <p class="blog-card-description">{post.data.description}</p>
+      </a>
+    </div>
   ))}
 </div>
 
 {pagination.enable && totalPages > 1 && (
-  <div class="mt-6 flex justify-center gap-3">
+  <div class="pagination mt-6 flex justify-center gap-3">
     {Array.from({ length: totalPages }, (_, i) => {
-      const pageNum = i + 1;
+      const page = i + 1;
       return (
-        <a
-          href={`/blog/page/${pageNum}`}
-          class={`px-3 py-1 rounded-md ${pageNum === pagination.currentPage ? "bg-pri text-white" : "bg-neutral-100 dark:bg-neutral-700"}`}
-        >
-          {pageNum}
+        <a class={`page-link ${page === pagination.currentPage ? 'active' : ''}`} href={`/blog/page/${page}`}>
+          {page}
         </a>
       );
     })}
