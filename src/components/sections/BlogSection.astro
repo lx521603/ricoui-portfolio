@@ -1,37 +1,19 @@
 ---
+import BlogCard from "@/components/cards/BlogCard.astro";
+import { getCollection } from "astro:content";
+
 const { allPosts = [], listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 } } = Astro.props;
 
-// 默认排序：按发布日期降序
-let sortedPosts = allPosts.sort(
-  (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
-);
+const sortedPosts = allPosts
+  .filter(p => !p.data.featured)
+  .sort((a: any, b: any) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
 
-const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
-const startIndex = (pagination.currentPage - 1) * postsPerPage;
-const endIndex = startIndex + postsPerPage;
-const paginatedPosts = sortedPosts.slice(startIndex, endIndex);
+const start = (pagination.currentPage - 1) * postsPerPage;
+const paginatedPosts = sortedPosts.slice(start, start + postsPerPage);
 ---
 
-<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-  {paginatedPosts.map(post => (
-    <div class="blog-card">
-      <a href={`/blog/${post.id}`}>
-        <h2 class="blog-card-title">{post.data.title}</h2>
-        <p class="blog-card-description">{post.data.description}</p>
-      </a>
-    </div>
+<div class="grid grid-cols-1 gap-8">
+  {paginatedPosts.map((post: any) => (
+    <BlogCard post={post} />
   ))}
 </div>
-
-{pagination.enable && totalPages > 1 && (
-  <div class="pagination mt-6 flex justify-center gap-3">
-    {Array.from({ length: totalPages }, (_, i) => {
-      const page = i + 1;
-      return (
-        <a class={`page-link ${page === pagination.currentPage ? 'active' : ''}`} href={`/blog/page/${page}`}>
-          {page}
-        </a>
-      );
-    })}
-  </div>
-)}
