@@ -8,30 +8,27 @@ export const POSTS_PER_PAGE = 6;
 
 export async function getStaticPaths() {
   const allPosts = await getCollection("post");
-
-  // 移除 featured
   const posts = allPosts.filter(p => !p.data.featured);
-
   const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
-  return Array.from({ length: totalPages }, (_, i) => {
-    const page = i + 1;
-    return {
-      params: { page: page.toString() },
-      props: { page: page.toString() },
-    };
-  });
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: (i + 1).toString() },
+    props: { page: (i + 1).toString() },
+  }));
 }
 
 const { page } = Astro.props;
 const currentPage = parseInt(page);
+
+const allPosts = await getCollection("post");
+const posts = allPosts.filter(p => !p.data.featured);
 ---
 
 <Layout title={`Blog - Page ${currentPage}`}>
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <PageHeader
       title="Blog"
-      description="Explore my thoughts on design and development, the convergence of thinking and innovation. Feel free to follow the updates!"
+      description="Explore my thoughts on design and development."
     />
   </section>
   <section class="relative z-20 mx-auto my-12 lg:px-0">
@@ -39,8 +36,9 @@ const currentPage = parseInt(page);
       <BlogSection
         title="All Articles"
         listPage={true}
-        postsPerPage={POSTS_PER_PAGE}
         pagination={{ enable: true, currentPage }}
+        postsPerPage={POSTS_PER_PAGE}
+        allPosts={posts}
       />
     </div>
   </section>
