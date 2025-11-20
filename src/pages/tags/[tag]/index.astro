@@ -64,12 +64,14 @@ const hasWorks = taggedWorks.length > 0;
     {hasBlogPosts && (
       <section class="mb-16">
         <h2 class="text-2xl font-bold mb-6">相关文章</h2>
-        <BlogSection
-          title=""
-          posts={taggedPosts}
-          listPage={true}
-          pagination={{ enable: false }}
-        />
+        <div class="site-container"> <!-- 添加容器包裹 BlogSection -->
+          <BlogSection
+            title=""
+            posts={taggedPosts}
+            listPage={true}
+            pagination={{ enable: false }}
+          />
+        </div>
       </section>
     )}
 
