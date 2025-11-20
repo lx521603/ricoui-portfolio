@@ -1,3 +1,4 @@
+---
 import { getCollection, render } from "astro:content";
 import PostLayout from "@/layouts/PostLayout.astro";
 import Toc from '@/components/widgets/Toc.astro';
@@ -47,7 +48,7 @@ const filtered = headings.filter(h => h.depth <= 2);
 				<!-- Tags -->
 				<div class="article-tags">
 					{entry.data.tags && entry.data.tags.length > 0 ? (
-						entry.data.tags.map((tag) => (
+						entry.data.tags.map(tag => (
 							<span class="article-tag letter-spacing-wide text-xs">{tag}</span>
 						))
 					) : (
