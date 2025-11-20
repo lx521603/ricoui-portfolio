@@ -1,62 +1,40 @@
 ---
-/**
- * BlogSection — safe and matching your /blog routes and /blog/page/[page]
- *
- * Props:
- *  title, description, limit, layout
- */
-import BlogCard from "@/components/cards/BlogCard.astro";
 import { getCollection } from "astro:content";
+import BlogCard from "@/components/cards/BlogCard.astro";
 
-const {
-  title = "最新文章",
-  description = "",
-  limit = 6,
-  layout = "grid"
-} = Astro.props || {};
+const { title, description, showViewAllButton = false, limit = 6 } = Astro.props;
 
-// collection name: "blog" (match your project routing /blog)
-const all = await getCollection("blog");
+// 获取全部博客文章
+const allPosts = await getCollection("blog");
 
-// safe filter for draft (draft might be undefined)
-const filtered = all.filter(p => !(p.data && (p.data as any).draft));
+// 过滤 draft 并按 publishDate 倒序
+const sortedPosts = allPosts
+  .filter(p => !p.data?.draft)
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
-// sort by publishDate robustly
-const sorted = filtered.sort((a, b) => {
-  const ta = a.data?.publishDate ? new Date(a.data.publishDate).getTime() : 0;
-  const tb = b.data?.publishDate ? new Date(b.data.publishDate).getTime() : 0;
-  return tb - ta;
-});
-
-const posts = sorted.slice(0, limit);
+// 限制数量
+const posts = limit ? sortedPosts.slice(0, limit) : sortedPosts;
 ---
 
-<section class="py-12">
-  <div class="site-container space-y-8">
-    <div>
-      <h2 class="text-3xl font-brand text-neutral-800 dark:text-white">{title}</h2>
-      {description && <p class="text-neutral-600 dark:text-neutral-400 mt-2">{description}</p>}
-    </div>
+<section class="blog-section container mx-auto py-10">
+  {title && <h2 class="text-3xl font-bold mb-6">{title}</h2>}
+  {description && <p class="text-neutral-600 dark:text-neutral-400 mb-8">{description}</p>}
 
-    {posts.length === 0 ? (
-      <p class="text-neutral-500 dark:text-neutral-400">暂无文章</p>
-    ) : (
-      <div class:list={[
-        "grid gap-8",
-        layout === "grid" && "md:grid-cols-2 lg:grid-cols-3",
-        layout === "list" && "flex flex-col gap-10"
-      ]}>
-        {posts.map((post) => (
-          <BlogCard
-            content={{
-              ...post.data,
-              slug: post.slug,
-              link: `/blog/${post.slug}`,
-            }}
-            mediaRatio="16:9"
-          />
-        ))}
-      </div>
-    )}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {posts.map(post => (
+      <BlogCard content={{
+        ...post.data,
+        slug: post.id,
+        link: `/blog/${post.id}`
+      }} />
+    ))}
   </div>
+
+  {showViewAllButton && (
+    <div class="mt-8 text-center">
+      <a href="/blog" class="inline-block text-primary font-semibold hover:underline">
+        查看全部文章 →
+      </a>
+    </div>
+  )}
 </section>
