@@ -35,15 +35,10 @@ const allTagCounts = {};
 const tags = Object.entries(allTagCounts)
   .map(([tag, count]) => ({ tag, count: count as number }))
   .sort((a, b) => (b.count as number) - (a.count as number));
-
-// 调试信息
-console.log('博客标签:', blogTagCounts);
-console.log('作品标签:', workTagCounts);
-console.log('所有标签:', tags);
 ---
 
 <Layout title="标签" description="按标签浏览文章和作品">
-  <section class="site-container m-auto">
+  <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <PageHeader
       title="标签"
       description="按标签浏览文章和作品"
