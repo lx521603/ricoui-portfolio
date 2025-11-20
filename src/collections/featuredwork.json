@@ -5,7 +5,7 @@
 		"tags": ["保山", "青龙街","人像"],
 		"image": "https://img.sorayt.cn/f/v0h6/DSC00763.BnP4sFeo.jpg",
 		"url": "/blog/web-design-style-guide-brutalism/",
-        "video": "https://example.com/path/to/video.mp4", // 可选属性
+    "video": "https://example.com/path/to/video.mp4",
 		"isShow": true
 	},
 	{
@@ -13,8 +13,8 @@
 		"description": "薇薇直播",
 		"tags": ["保山","直播","工作"],
 		"image": "https://img.sorayt.cn/f/lgi6/vv1.jpg",
-        "video": "https://example.com/path/to/video.mp4", // 可选属性
+    "video": "https://example.com/path/to/video.mp4",
 		"url": "/blog/shot-wwzb",
-        "isShow": true
+    "isShow": true
 	}
 ]
