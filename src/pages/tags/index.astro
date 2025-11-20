@@ -2,35 +2,51 @@
 import Layout from "@/layouts/Layout.astro";
 import PageHeader from "@/components/elements/PageHeader.astro";
 import { getCollection } from "astro:content";
+import works from "@/collections/featuredwork.json";
 
-// 使用新的 glob loader 方式获取数据
+// 获取博客文章的标签
 const allPosts = await getCollection("post");
-
-// 收集所有 tags 并统计
-const tagCounts = {};
+const blogTagCounts = {};
 allPosts.forEach(post => {
   if (post.data.tags && Array.isArray(post.data.tags)) {
     post.data.tags.forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      blogTagCounts[tag] = (blogTagCounts[tag] || 0) + 1;
     });
   }
 });
 
+// 获取作品的标签
+const workTagCounts = {};
+works.forEach(work => {
+  if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
+    work.tags.forEach(tag => {
+      workTagCounts[tag] = (workTagCounts[tag] || 0) + 1;
+    });
+  }
+});
+
+// 合并所有标签
+const allTagCounts = {};
+[...Object.keys(blogTagCounts), ...Object.keys(workTagCounts)].forEach(tag => {
+  allTagCounts[tag] = (blogTagCounts[tag] || 0) + (workTagCounts[tag] || 0);
+});
+
 // 按文章数量排序
-const tags = Object.entries(tagCounts)
+const tags = Object.entries(allTagCounts)
   .map(([tag, count]) => ({ tag, count: count as number }))
   .sort((a, b) => (b.count as number) - (a.count as number));
 
 // 调试信息
+console.log('博客标签:', blogTagCounts);
+console.log('作品标签:', workTagCounts);
 console.log('所有标签:', tags);
-console.log('总文章数:', allPosts.length);
 ---
 
-<Layout title="标签" description="按标签浏览文章">
+<Layout title="标签" description="按标签浏览文章和作品">
   <section class="site-container m-auto">
     <PageHeader
       title="标签"
-      description="按标签浏览文章"
+      description="按标签浏览文章和作品"
     />
     
     <div class="mt-12">
@@ -52,16 +68,7 @@ console.log('总文章数:', allPosts.length);
         </div>
       ) : (
         <div class="text-center text-gray-500 dark:text-gray-400">
-          <p>调试信息: 总文章数: {allPosts.length}</p>
-          <p>在文章中发现的标签: {JSON.stringify(tagCounts)}</p>
-          <p class="mt-4">未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
-          <p class="text-sm mt-2">示例 frontmatter:</p>
-          <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1 max-w-md mx-auto">
----
-title: "我的文章"
-tags: ["javascript", "web开发"]
----
-          </pre>
+          <p>未找到标签。</p>
         </div>
       )}
     </div>
