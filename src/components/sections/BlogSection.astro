@@ -1,53 +1,38 @@
 ---
-import BlogCard from "../cards/BlogCard.astro";
+const { allPosts = [], listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 }, showViewAllButton = false } = Astro.props;
 
-const {
-  allPosts = [],
-  listPage = false,
-  postsPerPage = 6,
-  pagination = { enable: false, currentPage: 1 },
-  showViewAllButton = false
-} = Astro.props;
-
-// 按发布日期倒序
+// 按发布日期排序文章
 const sortedPosts = allPosts.sort(
   (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
 );
 
-// 分页逻辑
-const currentPage = pagination.currentPage || 1;
+// 计算分页
+const currentPage = pagination?.currentPage || 1;
 const startIndex = (currentPage - 1) * postsPerPage;
-const paginatedPosts = sortedPosts.slice(startIndex, startIndex + postsPerPage);
-
-const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
+const endIndex = startIndex + postsPerPage;
+const paginatedPosts = sortedPosts.slice(startIndex, endIndex);
 ---
-
 <section class="blog-section">
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {paginatedPosts.map(post => (
-      <BlogCard post={post} />
+      <article class="blog-card">
+        <a href={`/blog/${post.slug}`}>
+          <h2>{post.data.title}</h2>
+          <p>{post.data.description}</p>
+        </a>
+      </article>
     ))}
   </div>
 
-  {pagination.enable && totalPages > 1 && (
-    <div class="mt-8 flex justify-center gap-3">
-      {Array.from({ length: totalPages }, (_, i) => {
-        const page = i + 1;
-        return (
-          <a
-            href={listPage ? `/blog/page/${page}` : `#`}
-            class={`px-3 py-1 border rounded ${page === currentPage ? 'bg-pri text-white' : 'bg-white dark:bg-neutral-800'}`}
-          >
-            {page}
-          </a>
-        );
-      })}
-    </div>
-  )}
-
-  {showViewAllButton && !listPage && (
-    <div class="mt-6 text-center">
-      <a href="/blog" class="px-4 py-2 bg-pri text-white rounded">View All Articles</a>
+  {pagination?.enable && (
+    <div class="pagination mt-8 flex justify-center gap-4">
+      {currentPage > 1 && (
+        <a href={`/blog/page/${currentPage - 1}`} class="prev">Previous</a>
+      )}
+      <span class="current">{currentPage}</span>
+      {endIndex < sortedPosts.length && (
+        <a href={`/blog/page/${currentPage + 1}`} class="next">Next</a>
+      )}
     </div>
   )}
 </section>
