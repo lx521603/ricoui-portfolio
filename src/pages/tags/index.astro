@@ -16,10 +16,10 @@ export async function getStaticProps() {
     }
   });
   
-  // 按文章数量排序
+  // 按文章数量排序 - 修复类型问题
   const sortedTags = Object.entries(tagCounts)
-    .sort(([, a], [, b]) => b - a)
-    .map(([tag, count]) => ({ tag, count }));
+    .map(([tag, count]) => ({ tag, count: count as number }))
+    .sort((a, b) => b.count - a.count);
   
   return {
     props: {
@@ -36,7 +36,7 @@ const { tags = [] } = Astro.props;
     <div class="text-center">
       <h1 class="text-4xl font-bold mb-4">Tags</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-         按标签浏览文章
+        按标签浏览文章
       </p>
     </div>
     
