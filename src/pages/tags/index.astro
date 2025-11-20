@@ -1,70 +1,109 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import BlogSection from "@/components/sections/BlogSection.astro";
+import WorkCard from "@/components/cards/WorkCard.astro";
 import { getCollection } from "astro:content";
 import works from "@/collections/featuredwork.json";
 
-// 获取博客文章的标签
+export async function getStaticPaths() {
+  const posts = await getCollection("post");
+  
+  // 收集所有唯一的标签（从博客和作品）
+  const allTags = new Set();
+  
+  // 从博客文章收集标签
+  posts.forEach(post => {
+    if (post.data.tags && Array.isArray(post.data.tags)) {
+      post.data.tags.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // 从作品收集标签
+  works.forEach(work => {
+    if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
+      work.tags.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // 为每个标签生成路径
+  return Array.from(allTags).map(tag => ({
+    params: { tag: String(tag) },
+    props: { tag: String(tag) }
+  }));
+}
+
+const { tag } = Astro.params;
+
+// 获取该标签下的所有博客文章
 const allPosts = await getCollection("post");
-const blogTagCounts = {};
-allPosts.forEach(post => {
-  if (post.data.tags && Array.isArray(post.data.tags)) {
-    post.data.tags.forEach(tag => {
-      blogTagCounts[tag] = (blogTagCounts[tag] || 0) + 1;
-    });
-  }
-});
+const taggedPosts = allPosts
+  .filter(post => post.data.tags && Array.isArray(post.data.tags) && post.data.tags.includes(tag))
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 
-// 获取作品的标签
-const workTagCounts = {};
-works.forEach(work => {
-  if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
-    work.tags.forEach(tag => {
-      workTagCounts[tag] = (workTagCounts[tag] || 0) + 1;
-    });
-  }
-});
+// 获取该标签下的所有作品
+const taggedWorks = works
+  .filter(work => work.tags && Array.isArray(work.tags) && work.tags.includes(tag) && work.isShow !== false);
 
-// 合并所有标签
-const allTagCounts = {};
-[...Object.keys(blogTagCounts), ...Object.keys(workTagCounts)].forEach(tag => {
-  allTagCounts[tag] = (blogTagCounts[tag] || 0) + (workTagCounts[tag] || 0);
-});
-
-// 按文章数量排序
-const tags = Object.entries(allTagCounts)
-  .map(([tag, count]) => ({ tag, count: count as number }))
-  .sort((a, b) => (b.count as number) - (a.count as number));
+const hasBlogPosts = taggedPosts.length > 0;
+const hasWorks = taggedWorks.length > 0;
 ---
 
-<Layout title="标签" description="按标签浏览文章和作品">
-  <section class="site-container m-auto">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold mb-4">标签</h1>
-      <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-        按标签浏览文章和作品
+<Layout title={`${tag} - 标签`} description={`包含标签 "${tag}" 的文章和作品`}>
+  <!-- 使用和首页完全相同的容器 -->
+  <div class="relative site-container z-20 w-full mx-auto mt-8 px-4 md:mt-10 lg:mt-12 xl:px-0">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-4">标签: {tag}</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {taggedPosts.length + taggedWorks.length} 个包含标签 "{tag}" 的内容
+        {hasBlogPosts && hasWorks && ` (${taggedPosts.length} 篇文章, ${taggedWorks.length} 个作品)`}
+        {hasBlogPosts && !hasWorks && ` (${taggedPosts.length} 篇文章)`}
+        {!hasBlogPosts && hasWorks && ` (${taggedWorks.length} 个作品)`}
       </p>
     </div>
-    
-    <div class="flex flex-wrap gap-3 justify-center">
-      {tags.length > 0 ? (
-        tags.map(({ tag, count }) => (
-          <a
-            href={`/tags/${tag}/`}
-            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
-          >
-            <span class="font-medium text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-              {tag}
-            </span>
-            <span class="ml-2 px-1.5 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400">
-              {count}
-            </span>
-          </a>
-        ))
-      ) : (
-        <div class="text-center text-gray-500 dark:text-gray-400 w-full">
-          <p>未找到标签。</p>
+
+    <!-- 博客文章部分 -->
+    {hasBlogPosts && (
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">相关文章</h2>
+        <!-- 关键修复：移除 BlogSection 的容器，避免嵌套 -->
+        <BlogSection
+          title=""
+          posts={taggedPosts}
+          listPage={true}
+          pagination={{ enable: false }}
+          container={false}  <!-- 添加这个参数 -->
+        />
+      </section>
+    )}
+
+    <!-- 作品部分 -->
+    {hasWorks && (
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">相关作品</h2>
+        <div class="space-y-8 md:space-y-10">
+          {taggedWorks.map((work, index) => (
+            <WorkCard
+              name={work.name}
+              description={work.description}
+              image={work.image}
+              url={work.url}
+              tags={work.tags}
+              video={work.video || undefined}
+              isShow={work.isShow}
+              layout="featured"
+              index={index}
+              mediaRatio="auto"
+            />
+          ))}
         </div>
-      )}
-    </div>
-  </section>
+      </section>
+    )}
+
+    <!-- 如果没有内容 -->
+    {!hasBlogPosts && !hasWorks && (
+      <div class="text-center text-gray-500 dark:text-gray-400 py-12">
+        <p>未找到包含此标签的内容。</p>
+      </div>
+    )}
+  </div>
 </Layout>
