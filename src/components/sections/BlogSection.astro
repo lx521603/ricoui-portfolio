@@ -7,127 +7,79 @@ import Button from "@/components/ui/Button.astro";
 import AnimatedText from "@/components/ui/AnimatedText.astro";
 
 // 定义组件接收的属性
+---
 const {
-  title = "近期文章",
-  description = "",
-  limit = 3,
-  listPage = false,
-  showViewAllButton = true,
-  pagination = {
-    enable: false,
-    currentPage: 1
-  },
-  postsPerPage = 3
+  content,
+  layout = "vertical",
+  mediaRatio = "16:9",
+  ...props
 } = Astro.props;
 
-// 获取博客文章集合
-const allPosts = await getCollection("post");
-
-// 按发布日期排序文章
-let posts = allPosts.sort(
-  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
-);
-
-// 查找特色文章
-const featuredPost = posts.find((post) => post.data.featured);
-
-// 如果存在特色文章，从主列表中移除
-if (featuredPost && listPage) {
-  posts = posts.filter((post) => post.data.featured !== true);
-}
-
-// 计算总页数
-const totalPages = Math.ceil(posts.length / postsPerPage);
-
-// 如果启用了分页，则只显示当前页的文章
-if (pagination.enable) {
-  const indexOfLastPost = pagination.currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  posts = posts.slice(indexOfFirstPost, indexOfLastPost);
-} else if (!listPage) {
-  // 如果不是列表页，限制显示的文章数量
-  posts = posts.slice(0, limit);
-}
-
-// 为每篇文章添加链接属性 - 创建新对象而不是修改原对象
-const postsWithLinks = posts.map(post => {
-  const link = `/blog/${post.id}`;
-  return {
-    ...post,
-    data: {
-      ...post.data,
-      link
-    }
-  };
-});
-
-// 为特色文章创建带链接的版本
-const featuredPostWithLink = featuredPost ? {
-  ...featuredPost,
-  data: {
-    ...featuredPost.data,
-    link: `/blog/${featuredPost.id}`
-  }
-} : null;
+// 解析媒体宽高比
+const ratioParts = mediaRatio.split(":");
+const ratio = (Number(ratioParts[1]) / Number(ratioParts[0])) * 100;
 ---
 
-{/* 特色文章部分 - 仅在列表页第一页显示 */}
-{listPage && featuredPostWithLink && pagination.currentPage === 1 && (
-  <section class="mb-16">
-    <div class="site-container">
-      <h2 class="text-3xl font-brand mb-6 text-neutral-800 dark:text-white">
-        <AnimatedText delay={0.75} stagger={0.08} content="精选" />
-      </h2>
-      <div class="dark:from-neutral-900 dark:to-neutral-800 p-1 rounded-2xl">
-        <BlogCard
-          layout="horizontal"
-          content={{ ...featuredPostWithLink.data, ...featuredPostWithLink }}
-          data-aos="fade-up-sm"
-          data-aos-delay="1000"
-          mediaRatio="auto"
-        />
+<article
+  class={`group relative flex flex-col ${
+    layout === "horizontal"
+      ? "md:flex-row md:items-center gap-6"
+      : "space-y-4"
+  }`}
+  {...props}
+>
+  {/* 图片部分 */}
+  <a
+    href={content.link}
+    class={`relative block overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800`}
+    style={layout === "horizontal" ? "min-width: 280px; max-width: 380px;" : ""}
+  >
+    <div style={`padding-top: ${ratio}%`}></div>
+    <img
+      src={content.data.heroImage || content.data.image}
+      alt={content.data.title}
+      class="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105"
+      loading="lazy"
+    />
+  </a>
+
+  {/* 文本部分 */}
+  <div class="flex flex-col justify-between space-y-3">
+    {/* 标签 —— 已改成可多选 + 可跳转 */}
+    {content.data.tags && content.data.tags.length > 0 && (
+      <div class="flex flex-wrap gap-2 mt-1">
+        {content.data.tags.map((tag) => (
+          <a
+            href={`/blog/tag/${tag}`}
+            class="px-2 py-1 text-xs rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+          >
+            #{tag}
+          </a>
+        ))}
       </div>
+    )}
+
+    {/* 标题 */}
+    <a href={content.link}>
+      <h3 class="text-xl font-semibold text-neutral-800 dark:text-white group-hover:text-primary transition">
+        {content.data.title}
+      </h3>
+    </a>
+
+    {/* 摘要 */}
+    {content.data.excerpt && (
+      <p class="text-neutral-600 dark:text-neutral-300 line-clamp-3">
+        {content.data.excerpt}
+      </p>
+    )}
+
+    {/* 作者 + 日期 */}
+    <div class="flex items-center gap-3 mt-4 text-sm text-neutral-500 dark:text-neutral-400">
+      {content.data.publishDate && (
+        <span>
+          {new Date(content.data.publishDate).toLocaleDateString("zh-CN")}
+        </span>
+      )}
     </div>
-  </section>
-)}
-
-<section>
-  <div class="site-container space-y-10 md:space-y-16">
-    {!listPage && title && (
-      <SectionHeader title={title} description={description} />
-    )}
-
-    {/* 列表页标题 */}
-    {listPage && title && (
-      <div class="mx-auto">
-        <h2 class="text-3xl font-brand text-neutral-800 dark:text-white">{title}</h2>
-      </div>
-    )}
-
-    <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-      {postsWithLinks && postsWithLinks.map((post, index) => (
-        <BlogCard
-          content={{ ...post.data, ...post }}
-          data-aos={!pagination.enable && (Math.floor(index / 3) % 2 === 0 ? "fade-right-sm" : "fade-left-sm")}
-          data-aos-delay={!pagination.enable && ((index % 3) + 1) * 200}
-          mediaRatio="auto"
-        />
-      ))}
-    </div>
-
-    {listPage && totalPages > 1 && (
-      <Pagination
-        collection="blog"
-        currentPage={pagination.currentPage || 1}
-        totalPages={totalPages}
-      />
-    )}
   </div>
-
-  {/* "View All Articles" 按钮 - 仅在非列表页且启用时显示 */}
-  {!listPage && showViewAllButton && (
-    <div class="flex justify-center mt-12 mb-12">
-      <Button url="/blog" className="w-full max-w-60">浏览所有文章</Button>
-    </div>
-  )}
-</section>
+</article>
