@@ -8,6 +8,10 @@
 		"url": "/blog"
 	},
 	{
+		"name": "标签",
+		"url": "/tags"
+	},
+	{
 		"name": "作品",
 		"url": "/works"
 	},
