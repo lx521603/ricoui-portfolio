@@ -15,18 +15,18 @@ allPosts.forEach(post => {
   }
 });
 
-// 按文章数量排序
+// 按文章数量排序 - 修复类型问题
 const tags = Object.entries(tagCounts)
-  .map(([tag, count]) => ({ tag, count: count }))
-  .sort((a, b) => b.count - a.count);
+  .map(([tag, count]) => ({ tag, count: count as number }))
+  .sort((a, b) => (b.count as number) - (a.count as number));
 ---
 
-<Layout title="标签" description="浏览所有标签">
+<Layout title="标签" description="按标签浏览文章">
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <div class="text-center">
-      <h1 class="text-4xl font-bold mb-4">Tags</h1>
+      <h1 class="text-4xl font-bold mb-4">标签</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-         按标签浏览文章
+        按标签浏览文章
       </p>
     </div>
     
@@ -49,8 +49,16 @@ const tags = Object.entries(tagCounts)
         </div>
       ) : (
         <div class="text-center text-gray-500 dark:text-gray-400">
-          <p>Debug: Total posts: {allPosts.length}</p>
-          <p>Tags found in posts: {JSON.stringify(tagCounts)}</p>
+          <p>调试信息: 总文章数: {allPosts.length}</p>
+          <p>在文章中发现的标签: {JSON.stringify(tagCounts)}</p>
+          <p class="mt-4">未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
+          <p class="text-sm mt-2">示例 frontmatter:</p>
+          <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1">
+---
+title: "我的文章"
+tags: ["javascript", "web开发"]
+---
+          </pre>
         </div>
       )}
     </div>
