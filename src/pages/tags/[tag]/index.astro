@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import BlogSection from "@/components/sections/BlogSection.astro";
-import FeaturedWork from "@/components/sections/FeaturedWork.astro";
+import WorkCard from "@/components/cards/WorkCard.astro";
 import { getCollection } from "astro:content";
 import works from "@/collections/featuredwork.json";
 
@@ -77,11 +77,21 @@ const hasWorks = taggedWorks.length > 0;
     {hasWorks && (
       <section class="mb-16">
         <h2 class="text-2xl font-bold mb-6">相关作品</h2>
-        <FeaturedWork
-          title=""
-          showAll={true}
-          posts={taggedWorks}
-        />
+        <div class="space-y-8 md:space-y-10">
+          {taggedWorks.map((work, index) => (
+            <WorkCard
+              name={work.name}
+              description={work.description}
+              image={work.image}
+              url={work.url}
+              tags={work.tags}
+              video={work.video}
+              isShow={work.isShow}
+              layout="featured"
+              index={index}
+            />
+          ))}
+        </div>
       </section>
     )}
 
