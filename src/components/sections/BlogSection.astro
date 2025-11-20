@@ -1,32 +1,53 @@
 ---
-const { allPosts = [], listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 } } = Astro.props;
+import BlogCard from "../cards/BlogCard.astro";
 
-let paginatedPosts = allPosts;
+const {
+  allPosts = [],
+  listPage = false,
+  postsPerPage = 6,
+  pagination = { enable: false, currentPage: 1 },
+  showViewAllButton = false
+} = Astro.props;
 
-if (pagination.enable) {
-  const start = (pagination.currentPage - 1) * postsPerPage;
-  const end = start + postsPerPage;
-  paginatedPosts = allPosts.slice(start, end);
-}
+// 按发布日期倒序
+const sortedPosts = allPosts.sort(
+  (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
+);
+
+// 分页逻辑
+const currentPage = pagination.currentPage || 1;
+const startIndex = (currentPage - 1) * postsPerPage;
+const paginatedPosts = sortedPosts.slice(startIndex, startIndex + postsPerPage);
+
+const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
 ---
 
-<div class="grid grid-cols-1 gap-6">
-  {paginatedPosts.map(post => (
-    <article class="border rounded p-4">
-      <a href={`/blog/${post.id}`}>
-        <h2 class="font-bold text-xl">{post.data.title}</h2>
-      </a>
-      <p class="text-sm text-neutral-500">{post.data.description}</p>
-      <time class="text-xs text-neutral-400" datetime={post.data.publishDate.toISOString()}>
-        {post.data.publishDate.toLocaleDateString()}
-      </time>
-    </article>
-  ))}
-</div>
-
-{pagination.enable && (
-  <div class="flex justify-between mt-6">
-    {pagination.currentPage > 1 && <a href={`/blog/page/${pagination.currentPage - 1}`} class="btn">Previous</a>}
-    {pagination.currentPage * postsPerPage < allPosts.length && <a href={`/blog/page/${pagination.currentPage + 1}`} class="btn">Next</a>}
+<section class="blog-section">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {paginatedPosts.map(post => (
+      <BlogCard post={post} />
+    ))}
   </div>
-)}
+
+  {pagination.enable && totalPages > 1 && (
+    <div class="mt-8 flex justify-center gap-3">
+      {Array.from({ length: totalPages }, (_, i) => {
+        const page = i + 1;
+        return (
+          <a
+            href={listPage ? `/blog/page/${page}` : `#`}
+            class={`px-3 py-1 border rounded ${page === currentPage ? 'bg-pri text-white' : 'bg-white dark:bg-neutral-800'}`}
+          >
+            {page}
+          </a>
+        );
+      })}
+    </div>
+  )}
+
+  {showViewAllButton && !listPage && (
+    <div class="mt-6 text-center">
+      <a href="/blog" class="px-4 py-2 bg-pri text-white rounded">View All Articles</a>
+    </div>
+  )}
+</section>
