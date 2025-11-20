@@ -104,7 +104,7 @@ const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9
     )}
 
     <a class="absolute inset-0 z-10" href={postLink}>
-      <span class="sr-only">Read More About {title}</span>
+      <span class="sr-only">阅读更多关于 {title}</span>
     </a>
   </div>
 
@@ -120,9 +120,17 @@ const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9
       {tags.length > 0 && (
         <>
           <span class="text-neutral-400 dark:text-neutral-500">·</span>
-          <span class="inline-flex items-center rounded-full bg-bg-secondary/8 dark:bg-bg-secondary/15 px-3 py-1 text-[11px] font-light text-primary/75 dark:text-primary-light/85 border border-primary/25 dark:border-primary/25">
-            {tags[0]}
-          </span>
+          <div class="flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <a
+                href={`/tags/${tag}/`}
+                class="inline-flex items-center rounded-full bg-bg-secondary/8 dark:bg-bg-secondary/15 px-2 py-1 text-[10px] font-light text-primary/75 dark:text-primary-light/85 border border-primary/25 dark:border-primary/25 hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary/40 dark:hover:border-primary/40 transition-all duration-300 cursor-pointer"
+                onclick="event.stopPropagation();"
+              >
+                {tag}
+              </a>
+            ))}
+          </div>
         </>
       )}
     </div>
