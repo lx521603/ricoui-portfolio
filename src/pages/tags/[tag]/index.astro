@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import BlogSection from "@/components/sections/BlogSection.astro";
+import BlogCard from "@/components/cards/BlogCard.astro";
 import WorkCard from "@/components/cards/WorkCard.astro";
 import { getCollection } from "astro:content";
 import works from "@/collections/featuredwork.json";
@@ -49,9 +49,9 @@ const hasWorks = taggedWorks.length > 0;
 ---
 
 <Layout title={`${tag} - 标签`} description={`包含标签 "${tag}" 的文章和作品`}>
-  <!-- 使用和 Blog 页完全相同的容器 -->
-  <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
-    <div class="text-center mb-12">
+  <!-- 使用和首页完全相同的容器 -->
+  <div class="relative site-container z-20 w-full mx-auto mt-8 px-4 md:mt-10 lg:mt-12 xl:px-0">
+    <div class="text-center mb-8">
       <h1 class="text-4xl font-bold mb-4">标签: {tag}</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400">
         {taggedPosts.length + taggedWorks.length} 个包含标签 "{tag}" 的内容
@@ -61,22 +61,25 @@ const hasWorks = taggedWorks.length > 0;
       </p>
     </div>
 
-    <!-- 博客文章部分 -->
+    <!-- 博客文章部分 - 直接使用 BlogCard 避免容器嵌套 -->
     {hasBlogPosts && (
-      <section class="mb-16">
+      <section class="mb-12">
         <h2 class="text-2xl font-bold mb-6">相关文章</h2>
-        <BlogSection
-          title=""
-          posts={taggedPosts}
-          listPage={true}
-          pagination={{ enable: false }}
-        />
+        <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+          {taggedPosts.map((post, index) => (
+            <BlogCard
+              content={{ ...post.data, ...post }}
+              data-aos={Math.floor(index / 3) % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
+              data-aos-delay={((index % 3) + 1) * 200}
+            />
+          ))}
+        </div>
       </section>
     )}
 
     <!-- 作品部分 -->
     {hasWorks && (
-      <section class="mb-16">
+      <section class="mb-12">
         <h2 class="text-2xl font-bold mb-6">相关作品</h2>
         <div class="space-y-8 md:space-y-10">
           {taggedWorks.map((work, index) => (
@@ -103,5 +106,5 @@ const hasWorks = taggedWorks.length > 0;
         <p>未找到包含此标签的内容。</p>
       </div>
     )}
-  </section>
+  </div>
 </Layout>
