@@ -1,37 +1,51 @@
 ---
-import BlogCard from "@/components/blog/BlogCard.astro";
+/**
+ * BlogSection — safe and matching your /blog routes and /blog/page/[page]
+ *
+ * Props:
+ *  title, description, limit, layout
+ */
+import BlogCard from "@/components/cards/BlogCard.astro";
 import { getCollection } from "astro:content";
 
 const {
   title = "最新文章",
-  description,
+  description = "",
   limit = 6,
   layout = "grid"
-} = Astro.props;
+} = Astro.props || {};
 
-const posts = (await getCollection("blog"))
-  .filter((p) => !p.data.draft)
-  .sort((a, b) => new Date(b.data.publishDate) - new Date(a.data.publishDate))
-  .slice(0, limit);
+// collection name: "blog" (match your project routing /blog)
+const all = await getCollection("blog");
+
+// safe filter for draft (draft might be undefined)
+const filtered = all.filter(p => !(p.data && (p.data as any).draft));
+
+// sort by publishDate robustly
+const sorted = filtered.sort((a, b) => {
+  const ta = a.data?.publishDate ? new Date(a.data.publishDate).getTime() : 0;
+  const tb = b.data?.publishDate ? new Date(b.data.publishDate).getTime() : 0;
+  return tb - ta;
+});
+
+const posts = sorted.slice(0, limit);
 ---
 
-<section class="w-full py-12">
-  <div class="mx-auto max-w-7xl px-4">
-    <div class="mb-10">
-      <h2 class="text-3xl font-bold">{title}</h2>
+<section class="py-12">
+  <div class="site-container space-y-8">
+    <div>
+      <h2 class="text-3xl font-brand text-neutral-800 dark:text-white">{title}</h2>
       {description && <p class="text-neutral-600 dark:text-neutral-400 mt-2">{description}</p>}
     </div>
 
     {posts.length === 0 ? (
       <p class="text-neutral-500 dark:text-neutral-400">暂无文章</p>
     ) : (
-      <div
-        class:list={[
-          "grid gap-8",
-          layout === "grid" && "md:grid-cols-2 lg:grid-cols-3",
-          layout === "list" && "flex flex-col gap-10"
-        ]}
-      >
+      <div class:list={[
+        "grid gap-8",
+        layout === "grid" && "md:grid-cols-2 lg:grid-cols-3",
+        layout === "list" && "flex flex-col gap-10"
+      ]}>
         {posts.map((post) => (
           <BlogCard
             content={{
@@ -39,6 +53,7 @@ const posts = (await getCollection("blog"))
               slug: post.slug,
               link: `/blog/${post.slug}`,
             }}
+            mediaRatio="16:9"
           />
         ))}
       </div>
