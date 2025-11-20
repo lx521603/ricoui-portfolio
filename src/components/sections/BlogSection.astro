@@ -1,85 +1,47 @@
 ---
+import BlogCard from "@/components/blog/BlogCard.astro";
 import { getCollection } from "astro:content";
-import Pagination from "@/components/widgets/Pagination.astro";
-import BlogCard from "@/components/cards/BlogCard.astro";
-import SectionHeader from "@/components/elements/SectionHeader.astro";
-import Button from "@/components/ui/Button.astro";
-import AnimatedText from "@/components/ui/AnimatedText.astro";
 
-// 定义组件接收的属性
----
 const {
-  content,
-  layout = "vertical",
-  mediaRatio = "16:9",
-  ...props
+  title = "最新文章",
+  description,
+  limit = 6,
+  layout = "grid"
 } = Astro.props;
 
-// 解析媒体宽高比
-const ratioParts = mediaRatio.split(":");
-const ratio = (Number(ratioParts[1]) / Number(ratioParts[0])) * 100;
+const posts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => new Date(b.data.publishDate) - new Date(a.data.publishDate))
+  .slice(0, limit);
 ---
 
-<article
-  class={`group relative flex flex-col ${
-    layout === "horizontal"
-      ? "md:flex-row md:items-center gap-6"
-      : "space-y-4"
-  }`}
-  {...props}
->
-  {/* 图片部分 */}
-  <a
-    href={content.link}
-    class={`relative block overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800`}
-    style={layout === "horizontal" ? "min-width: 280px; max-width: 380px;" : ""}
-  >
-    <div style={`padding-top: ${ratio}%`}></div>
-    <img
-      src={content.data.heroImage || content.data.image}
-      alt={content.data.title}
-      class="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105"
-      loading="lazy"
-    />
-  </a>
+<section class="w-full py-12">
+  <div class="mx-auto max-w-7xl px-4">
+    <div class="mb-10">
+      <h2 class="text-3xl font-bold">{title}</h2>
+      {description && <p class="text-neutral-600 dark:text-neutral-400 mt-2">{description}</p>}
+    </div>
 
-  {/* 文本部分 */}
-  <div class="flex flex-col justify-between space-y-3">
-    {/* 标签 —— 已改成可多选 + 可跳转 */}
-    {content.data.tags && content.data.tags.length > 0 && (
-      <div class="flex flex-wrap gap-2 mt-1">
-        {content.data.tags.map((tag) => (
-          <a
-            href={`/blog/tag/${tag}`}
-            class="px-2 py-1 text-xs rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
-          >
-            #{tag}
-          </a>
+    {posts.length === 0 ? (
+      <p class="text-neutral-500 dark:text-neutral-400">暂无文章</p>
+    ) : (
+      <div
+        class:list={[
+          "grid gap-8",
+          layout === "grid" && "md:grid-cols-2 lg:grid-cols-3",
+          layout === "list" && "flex flex-col gap-10"
+        ]}
+      >
+        {posts.map((post) => (
+          <BlogCard
+            content={{
+              ...post.data,
+              slug: post.slug,
+              link: `/blog/${post.slug}`,
+            }}
+          />
         ))}
       </div>
     )}
-
-    {/* 标题 */}
-    <a href={content.link}>
-      <h3 class="text-xl font-semibold text-neutral-800 dark:text-white group-hover:text-primary transition">
-        {content.data.title}
-      </h3>
-    </a>
-
-    {/* 摘要 */}
-    {content.data.excerpt && (
-      <p class="text-neutral-600 dark:text-neutral-300 line-clamp-3">
-        {content.data.excerpt}
-      </p>
-    )}
-
-    {/* 作者 + 日期 */}
-    <div class="flex items-center gap-3 mt-4 text-sm text-neutral-500 dark:text-neutral-400">
-      {content.data.publishDate && (
-        <span>
-          {new Date(content.data.publishDate).toLocaleDateString("zh-CN")}
-        </span>
-      )}
-    </div>
   </div>
-</article>
+</section>
