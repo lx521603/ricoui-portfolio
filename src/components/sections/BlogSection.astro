@@ -1,40 +1,59 @@
 ---
-import { getCollection } from "astro:content";
 import BlogCard from "@/components/cards/BlogCard.astro";
+import { getCollection } from "astro:content";
 
-const { title, description, showViewAllButton = false, limit = 6 } = Astro.props;
+const { title = "", description = "", listPage = false, postsPerPage = 6, pagination = { enable: false, currentPage: 1 } } = Astro.props;
 
-// 获取全部博客文章
-const allPosts = await getCollection("blog");
+let allPosts = await getCollection("post");
 
-// 过滤 draft 并按 publishDate 倒序
-const sortedPosts = allPosts
-  .filter(p => !p.data?.draft)
-  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
+// 过滤草稿文章
+allPosts = allPosts.filter(p => !p.data?.draft);
 
-// 限制数量
-const posts = limit ? sortedPosts.slice(0, limit) : sortedPosts;
+// 排序：按发布日期降序
+allPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+
+// 如果有特色文章，需要从列表中排除
+const featuredPost = allPosts.find(post => post.data.featured);
+if (featuredPost) allPosts = allPosts.filter(p => p.data.featured !== true);
+
+// 分页逻辑
+let paginatedPosts = allPosts;
+const currentPage = pagination?.currentPage ?? 1;
+
+if (pagination?.enable) {
+  const start = (currentPage - 1) * postsPerPage;
+  const end = start + postsPerPage;
+  paginatedPosts = allPosts.slice(start, end);
+}
+
+const totalPages = Math.ceil(allPosts.length / postsPerPage);
 ---
 
-<section class="blog-section container mx-auto py-10">
-  {title && <h2 class="text-3xl font-bold mb-6">{title}</h2>}
-  {description && <p class="text-neutral-600 dark:text-neutral-400 mb-8">{description}</p>}
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {posts.map(post => (
-      <BlogCard content={{
-        ...post.data,
-        slug: post.id,
-        link: `/blog/${post.id}`
-      }} />
-    ))}
-  </div>
-
-  {showViewAllButton && (
-    <div class="mt-8 text-center">
-      <a href="/blog" class="inline-block text-primary font-semibold hover:underline">
-        查看全部文章 →
-      </a>
-    </div>
-  )}
+<section class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+  {paginatedPosts.map(post => (
+    <BlogCard content={{
+      ...post.data,
+      slug: post.id,
+      link: `/blog/${post.id}`
+    }} />
+  ))}
 </section>
+
+{pagination?.enable && totalPages > 1 && (
+  <div class="mt-8 flex justify-center gap-3">
+    {Array.from({ length: totalPages }, (_, i) => {
+      const pageNum = i + 1;
+      return (
+        <a
+          class:list={[
+            "px-3 py-1 rounded-md border border-primary/25 dark:border-primary/40 transition-colors duration-300",
+            pageNum === currentPage ? "bg-primary text-white dark:bg-primary-light dark:text-neutral-900" : "text-neutral-700 dark:text-neutral-300 hover:bg-primary/10 dark:hover:bg-primary-light/10"
+          ]}
+          href={`/blog/page/${pageNum}`}
+        >
+          {pageNum}
+        </a>
+      );
+    })}
+  </div>
+)}
