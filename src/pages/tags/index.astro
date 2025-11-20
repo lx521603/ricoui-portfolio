@@ -5,19 +5,19 @@ import { getCollection } from "astro:content";
 export async function getStaticPaths() {
   const posts = await getCollection("post");
   
-  // 收集所有 tags 并统计
-  const tagCounts = {};
+  // 收集所有 tags 并统计 - 修复类型问题
+  const tagCounts: Record<string, number> = {};
   posts.forEach(post => {
     if (post.data.tags) {
-      post.data.tags.forEach(tag => {
+      post.data.tags.forEach((tag: string) => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
     }
   });
   
-  // 按文章数量排序
+  // 按文章数量排序 - 修复类型问题
   const sortedTags = Object.entries(tagCounts)
-    .sort(([, a], [, b]) => b - a)
+    .sort(([, a]: [string, number], [, b]: [string, number]) => (b as number) - (a as number))
     .map(([tag, count]) => ({ tag, count }));
   
   return {
@@ -27,7 +27,12 @@ export async function getStaticPaths() {
   };
 }
 
-const { tags } = Astro.props;
+interface TagItem {
+  tag: string;
+  count: number;
+}
+
+const { tags } = Astro.props as { tags: TagItem[] };
 ---
 
 <Layout title="Tags" description="Browse all tags">
@@ -41,7 +46,7 @@ const { tags } = Astro.props;
     
     <div class="mt-12 max-w-4xl mx-auto">
       <div class="flex flex-wrap gap-4 justify-center">
-        {tags.map(({ tag, count }) => (
+        {tags.map(({ tag, count }: TagItem) => (
           <a
             href={`/tags/${tag}/`}
             class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
