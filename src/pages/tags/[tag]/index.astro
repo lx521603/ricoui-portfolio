@@ -7,47 +7,53 @@ export async function getStaticPaths() {
   const posts = await getCollection("post");
   
   // 收集所有唯一的 tags
-  const allTags = new Set<string>();
+  const allTags = new Set();
   posts.forEach(post => {
-    if (post.data.tags) {
-      post.data.tags.forEach((tag: string) => allTags.add(tag));
+    if (post.data.tags && Array.isArray(post.data.tags)) {
+      post.data.tags.forEach(tag => allTags.add(tag));
     }
   });
   
   // 为每个 tag 生成路径
   return Array.from(allTags).map(tag => ({
-    params: { tag },
-    props: { tag }
+    params: { tag: String(tag) },
+    props: { tag: String(tag) }
   }));
 }
 
-const { tag } = Astro.params as { tag: string };
+const { tag } = Astro.params;
 
 // 获取该 tag 下的所有文章
 const allPosts = await getCollection("post");
 const taggedPosts = allPosts
-  .filter(post => post.data.tags && post.data.tags.includes(tag as string))
+  .filter(post => post.data.tags && Array.isArray(post.data.tags) && post.data.tags.includes(tag))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 ---
 
-<Layout title={`${tag} - Tags`} description={`Articles tagged with ${tag}`}>
+<Layout title={`${tag} - 标签`} description={`包含标签 "${tag}" 的文章`}>
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <div class="text-center">
-      <h1 class="text-4xl font-bold mb-4">Tag: {tag}</h1>
+      <h1 class="text-4xl font-bold mb-4">标签: {tag}</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400">
-        {taggedPosts.length} article{taggedPosts.length !== 1 ? 's' : ''} tagged with "{tag}"
+        {taggedPosts.length} 篇包含标签 "{tag}" 的文章
       </p>
     </div>
   </section>
   
   <section class="relative z-20 mx-auto my-12 px-7 lg:px-0">
     <div class="mt-8">
-      <BlogSection
-        title=""
-        posts={taggedPosts}
-        listPage={true}
-        pagination={{ enable: false }}
-      />
+      {taggedPosts.length > 0 ? (
+        <BlogSection
+          title=""
+          posts={taggedPosts}
+          listPage={true}
+          pagination={{ enable: false }}
+        />
+      ) : (
+        <div class="text-center text-gray-500 dark:text-gray-400 py-12">
+          <p>未找到包含此标签的文章。</p>
+        </div>
+      )}
     </div>
   </section>
 </Layout>
