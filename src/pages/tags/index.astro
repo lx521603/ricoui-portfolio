@@ -30,9 +30,9 @@ const tags = Object.entries(tagCounts)
       </p>
     </div>
     
-    <div class="mt-12 max-w-4xl mx-auto">
+    <div class="mt-12">
       {tags.length > 0 ? (
-        <div class="flex flex-wrap gap-4 justify-center">
+        <div class="flex flex-wrap gap-3 justify-center">
           {tags.map(({ tag, count }) => (
             <a
               href={`/tags/${tag}/`}
@@ -49,11 +49,9 @@ const tags = Object.entries(tagCounts)
         </div>
       ) : (
         <div class="text-center text-gray-500 dark:text-gray-400">
-          <p>调试信息: 总文章数: {allPosts.length}</p>
-          <p>在文章中发现的标签: {JSON.stringify(tagCounts)}</p>
-          <p class="mt-4">未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
+          <p>未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
           <p class="text-sm mt-2">示例 frontmatter:</p>
-          <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1">
+          <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1 max-w-md mx-auto">
 ---
 title: "我的文章"
 tags: ["javascript", "web开发"]
