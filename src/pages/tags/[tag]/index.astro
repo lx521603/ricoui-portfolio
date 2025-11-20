@@ -7,10 +7,10 @@ export async function getStaticPaths() {
   const posts = await getCollection("post");
   
   // 收集所有唯一的 tags
-  const allTags = new Set();
+  const allTags = new Set<string>();
   posts.forEach(post => {
     if (post.data.tags) {
-      post.data.tags.forEach(tag => allTags.add(tag));
+      post.data.tags.forEach((tag: string) => allTags.add(tag));
     }
   });
   
@@ -21,12 +21,12 @@ export async function getStaticPaths() {
   }));
 }
 
-const { tag } = Astro.params;
+const { tag } = Astro.params as { tag: string };
 
 // 获取该 tag 下的所有文章
 const allPosts = await getCollection("post");
 const taggedPosts = allPosts
-  .filter(post => post.data.tags && post.data.tags.includes(tag))
+  .filter(post => post.data.tags && post.data.tags.includes(tag as string))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 ---
 
