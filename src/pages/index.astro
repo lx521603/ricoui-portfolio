@@ -1,13 +1,11 @@
 ---
-import Button from "../components/ui/Button.astro";
-import { siteConfig } from "@/config/site";
-import HeroCard from "@/components/home/HeroCard.astro";
 import Layout from "@/layouts/Layout.astro";
-import FeaturedWork from "../components/sections/FeaturedWork.astro";
+import HeroCard from "@/components/home/HeroCard.astro";
+import FeaturedWork from "@/components/sections/FeaturedWork.astro";
 import BlogSection from "@/components/sections/BlogSection.astro";
 import SocialCard from "@/components/cards/SocialCard.astro";
 import AnimatedText from "@/components/ui/AnimatedText.astro";
-import Explore from "@/components/sections/Explore.astro";
+import { siteConfig } from "@/config/site";
 ---
 
 <Layout
@@ -15,7 +13,7 @@ import Explore from "@/components/sections/Explore.astro";
   description="保持好奇，永远出发。这里为探索与尝鲜而生。"
   keywords="Sai, 摄影, Web Design, UI Design, Frontend Development, Creative Designer"
 >
-  <!-- 顶部 hero 区域 -->
+  <!-- 顶部 hero -->
   <div class="relative site-container z-20 w-full mx-auto mt-8 px-4 md:mt-10 lg:mt-12 xl:px-0">
     <div class="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-4">
       <div class="relative w-full md:max-w-[420px] md:w-1/2 text-center sm:text-left sm:-mt-4">
@@ -50,9 +48,9 @@ import Explore from "@/components/sections/Explore.astro";
         </div>
 
         <div data-aos="fade-up-sm" data-aos-delay="900" data-aos-duration="500" data-aos-once="true">
-          <Button url={siteConfig.social.twitter} type="fill" className="m-auto mt-2 sm:text-left sm:m-0 sm:mt-4 max-w-[200px]">
+          <a href={siteConfig.social.twitter} class="btn-fill mt-2 sm:mt-4 max-w-[200px] inline-block text-center">
             Follow me on 𝕏
-          </Button>
+          </a>
         </div>
 
         <div class="social mt-4 mb-4" data-aos="fade-up-sm" data-aos-delay="1000" data-aos-duration="600" data-aos-once="true">
@@ -87,8 +85,10 @@ import Explore from "@/components/sections/Explore.astro";
   >
     <BlogSection
       title="最新文章  ↓"
-      description="这些是我用镜头与文字留下的影像与旅途，每一篇都是生活的片段与感悟。"
+      listPage={true}
       showViewAllButton={true}
+      postsPerPage={6}
+      pagination={{ enable: true, currentPage: 1 }}
     />
   </section>
 </Layout>
