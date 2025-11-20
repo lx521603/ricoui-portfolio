@@ -2,41 +2,31 @@
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
-// 对于索引页面，不需要 getStaticPaths，直接使用 getStaticProps
-export async function getStaticProps() {
-  const posts = await getCollection("post");
-  
-  // 收集所有 tags 并统计
-  const tagCounts = {};
-  posts.forEach(post => {
-    if (post.data.tags && Array.isArray(post.data.tags)) {
-      post.data.tags.forEach(tag => {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-      });
-    }
-  });
-  
-  // 按文章数量排序
-  const sortedTags = Object.entries(tagCounts)
-    .map(([tag, count]) => ({ tag, count: count as number }))
-    .sort((a, b) => b.count - a.count);
-  
-  return {
-    props: {
-      tags: sortedTags
-    }
-  };
-}
+// 使用新的 glob loader 方式获取数据
+const allPosts = await getCollection("post");
 
-const { tags = [] } = Astro.props;
+// 收集所有 tags 并统计
+const tagCounts = {};
+allPosts.forEach(post => {
+  if (post.data.tags && Array.isArray(post.data.tags)) {
+    post.data.tags.forEach(tag => {
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+  }
+});
+
+// 按文章数量排序
+const tags = Object.entries(tagCounts)
+  .map(([tag, count]) => ({ tag, count: count }))
+  .sort((a, b) => b.count - a.count);
 ---
 
 <Layout title="Tags" description="Browse all tags">
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
     <div class="text-center">
-      <h1 class="text-4xl font-bold mb-4">标签</h1>
+      <h1 class="text-4xl font-bold mb-4">Tags</h1>
       <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-         按标签浏览文章
+        Browse articles by tags
       </p>
     </div>
     
@@ -59,14 +49,8 @@ const { tags = [] } = Astro.props;
         </div>
       ) : (
         <div class="text-center text-gray-500 dark:text-gray-400">
-          <p>未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
-          <p class="text-sm mt-2">Example frontmatter:</p>
-          <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1">
----
-title: "我的文章"
-tags: ["javascript", "web-development"]
----
-          </pre>
+          <p>Debug: Total posts: {allPosts.length}</p>
+          <p>Tags found in posts: {JSON.stringify(tagCounts)}</p>
         </div>
       )}
     </div>
