@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import PageHeader from "@/components/elements/PageHeader.astro";
 import { getCollection } from "astro:content";
 
 // 使用新的 glob loader 方式获取数据
@@ -19,35 +20,41 @@ allPosts.forEach(post => {
 const tags = Object.entries(tagCounts)
   .map(([tag, count]) => ({ tag, count: count as number }))
   .sort((a, b) => (b.count as number) - (a.count as number));
+
+// 调试信息
+console.log('所有标签:', tags);
+console.log('总文章数:', allPosts.length);
 ---
 
 <Layout title="标签" description="按标签浏览文章">
   <section class="site-container m-auto">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold mb-4">标签</h1>
-      <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-        按标签浏览文章
-      </p>
-    </div>
+    <PageHeader
+      title="标签"
+      description="按标签浏览文章"
+    />
     
-    <div class="flex flex-wrap gap-3 justify-center">
+    <div class="mt-12">
       {tags.length > 0 ? (
-        tags.map(({ tag, count }) => (
-          <a
-            href={`/tags/${tag}/`}
-            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
-          >
-            <span class="font-medium text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-              {tag}
-            </span>
-            <span class="ml-2 px-1.5 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400">
-              {count}
-            </span>
-          </a>
-        ))
+        <div class="flex flex-wrap gap-3 justify-center">
+          {tags.map(({ tag, count }) => (
+            <a
+              href={`/tags/${tag}/`}
+              class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group"
+            >
+              <span class="font-medium text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                {tag}
+              </span>
+              <span class="ml-2 px-1.5 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400">
+                {count}
+              </span>
+            </a>
+          ))}
+        </div>
       ) : (
-        <div class="text-center text-gray-500 dark:text-gray-400 w-full">
-          <p>未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
+        <div class="text-center text-gray-500 dark:text-gray-400">
+          <p>调试信息: 总文章数: {allPosts.length}</p>
+          <p>在文章中发现的标签: {JSON.stringify(tagCounts)}</p>
+          <p class="mt-4">未找到标签。请检查您的博客文章是否在 frontmatter 中定义了标签。</p>
           <p class="text-sm mt-2">示例 frontmatter:</p>
           <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1 max-w-md mx-auto">
 ---
