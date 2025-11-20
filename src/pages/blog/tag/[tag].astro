@@ -4,33 +4,22 @@ import PageHeader from "@/components/elements/PageHeader.astro";
 import BlogSection from "@/components/sections/BlogSection.astro";
 import { getCollection } from "astro:content";
 
-const allPosts = await getCollection("post");
-
 const { tag } = Astro.params;
 if (!tag) return Astro.redirect("/404");
 
-const postsWithTag = allPosts.filter(p => p.data.tags?.includes(tag));
-
-const POSTS_PER_PAGE = 6;
-const currentPage = 1;
+let allPosts = await getCollection("post");
+allPosts = allPosts.filter(p => !p.data?.draft && !p.data?.featured && p.data.tags?.includes(tag));
+allPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
 ---
 
-<Layout title={`Tag: ${tag}`}>
+<Layout title={`Posts tagged "${tag}"`}>
   <section class="relative z-20 container mx-auto my-12 px-7 lg:px-0">
-    <PageHeader
-      title={`Tag: ${tag}`}
-      description={`查看所有包含标签 "${tag}" 的文章`}
-    />
+    <PageHeader title={`Posts tagged "${tag}"`} description={`All posts tagged with "${tag}"`} />
   </section>
+
   <section class="relative z-20 mx-auto my-12 lg:px-0">
     <div class="mt-12">
-      <BlogSection
-        title=""
-        listPage={true}
-        postsPerPage={POSTS_PER_PAGE}
-        pagination={{ enable: true, currentPage }}
-        allPosts={postsWithTag}
-      />
+      <BlogSection allPosts={allPosts} listPage={true} />
     </div>
   </section>
 </Layout>
