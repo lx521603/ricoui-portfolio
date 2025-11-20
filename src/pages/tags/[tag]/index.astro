@@ -64,7 +64,7 @@ const hasWorks = taggedWorks.length > 0;
     {hasBlogPosts && (
       <section class="mb-16">
         <h2 class="text-2xl font-bold mb-6">相关文章</h2>
-        <div class="site-container"> <!-- 添加容器包裹 BlogSection -->
+        <div class="site-container">
           <BlogSection
             title=""
             posts={taggedPosts}
@@ -91,7 +91,7 @@ const hasWorks = taggedWorks.length > 0;
               isShow={work.isShow}
               layout="featured"
               index={index}
-              mediaRatio="auto"  <!-- 关键修复：强制使用自动比例 -->
+              mediaRatio="auto"
             />
           ))}
         </div>
