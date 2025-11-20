@@ -2,7 +2,14 @@
 import Layout from "@/layouts/Layout.astro";
 import PageHeader from "@/components/elements/PageHeader.astro";
 import BlogSection from "@/components/sections/BlogSection.astro";
+import { getCollection } from "astro:content";
 
+const allPosts = await getCollection("post");
+
+// 筛掉特色文章
+const posts = allPosts.filter(p => !p.data.featured);
+
+// 分页参数
 const POSTS_PER_PAGE = 6;
 const currentPage = 1;
 ---
@@ -19,8 +26,9 @@ const currentPage = 1;
       <BlogSection
         title=""
         listPage={true}
-        postsPerPage={POSTS_PER_PAGE}
         pagination={{ enable: true, currentPage }}
+        postsPerPage={POSTS_PER_PAGE}
+        allPosts={posts}
       />
     </div>
   </section>
