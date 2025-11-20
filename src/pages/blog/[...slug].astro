@@ -12,13 +12,10 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-
-if (!entry) {
-  return Astro.redirect("/404");
-}
+if (!entry) return Astro.redirect("/404");
 
 const { Content, headings } = await render(entry);
-const filtered = headings.filter(h => h.depth <= 2);
+const filteredHeadings = headings.filter(h => h.depth <= 2);
 ---
 
 <PostLayout title={entry.data.title} description={entry.data.description}>
@@ -28,8 +25,8 @@ const filtered = headings.filter(h => h.depth <= 2);
     <main class="relative site-container mx-auto my-8 md:my-12">
       <header class="article-header">
         <div class="article-tags">
-          {(entry.data.tags ?? []).length > 0
-            ? (entry.data.tags ?? []).map(tag => (
+          {entry.data.tags?.length
+            ? entry.data.tags.map(tag => (
                 <span class="article-tag letter-spacing-wide text-xs">{tag}</span>
               ))
             : <span class="article-tag text-xs">Article</span>}
@@ -39,11 +36,7 @@ const filtered = headings.filter(h => h.depth <= 2);
 
         <div class="article-meta text-sm text-neutral-500 dark:text-neutral-400">
           <time datetime={entry.data.publishDate.toISOString()}>
-            {entry.data.publishDate.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
+            {entry.data.publishDate.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}
           </time>
           {entry.data.read && (
             <>
@@ -57,7 +50,7 @@ const filtered = headings.filter(h => h.depth <= 2);
       <div class="relative flex flex-col lg:flex-row gap-8 lg:gap-12 xl:gap-16">
         <aside class="relative hidden lg:block lg:w-40 xl:w-50 flex-shrink-0">
           <div class="toc-sticky-wrapper">
-            <Toc headings={filtered} />
+            <Toc headings={filteredHeadings} />
           </div>
         </aside>
 
@@ -74,10 +67,7 @@ const filtered = headings.filter(h => h.depth <= 2);
 </PostLayout>
 
 <style>
-.toc-sticky-wrapper {
-  position: sticky;
-  top: 8rem;
-}
+.toc-sticky-wrapper { position: sticky; top: 8rem; }
 </style>
 
 <script>
@@ -89,7 +79,6 @@ function updateReadingProgress() {
   const documentHeight = document.documentElement.scrollHeight;
   const scrollTop = window.scrollY;
   const scrollPercentage = (scrollTop / (documentHeight - windowHeight)) * 100;
-
   progressBar.style.transform = `scaleX(${Math.min(scrollPercentage / 100, 1)})`;
 }
 
