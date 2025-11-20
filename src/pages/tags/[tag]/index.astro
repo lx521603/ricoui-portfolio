@@ -85,11 +85,11 @@ const hasWorks = taggedWorks.length > 0;
               image={work.image}
               url={work.url}
               tags={work.tags}
-              video={work.video} // [!code --]
-               video={work.video || undefined} // [!code ++]
+              video={work.video || undefined}
               isShow={work.isShow}
               layout="featured"
               index={index}
+              mediaRatio="auto"  <!-- 关键修复：强制使用自动比例 -->
             />
           ))}
         </div>
