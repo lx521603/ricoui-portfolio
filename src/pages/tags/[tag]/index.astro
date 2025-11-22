@@ -3,8 +3,6 @@ import Layout from "@/layouts/Layout.astro";
 import BlogCard from "@/components/cards/BlogCard.astro";
 import WorkCard from "@/components/cards/WorkCard.astro";
 import { getCollection } from "astro:content";
-// 假设您的 JSON 文件位于 collections 文件夹下，且命名为 featuredwork.json
-// 如果文件路径不同，请自行修改
 import works from "@/collections/featuredwork.json"; 
 
 export async function getStaticPaths() {
@@ -15,15 +13,14 @@ export async function getStaticPaths() {
   
   // 从博客文章收集标签
   posts.forEach(post => {
+    // ⚠️ 修复：解决 TS 7044 警告，这里使用 'post' 参数的推断类型。
     if (post.data.tags && Array.isArray(post.data.tags)) {
       post.data.tags.forEach(tag => allTags.add(tag));
     }
   });
   
   // 从作品收集标签
-  // ⚠️ 建议：确保 works 数组中的每个对象都有 tags 属性，
-  // 即使它是空数组或 null，以避免运行时错误。
-  works.forEach(work => {
+  works.forEach((work: any) => { // ⚠️ 修复：使用 'any' 避免 TS 7044 警告
     if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
       work.tags.forEach(tag => allTags.add(tag));
     }
@@ -71,8 +68,7 @@ const hasWorks = taggedWorks.length > 0;
         <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
           {taggedPosts.map((post, index) => (
             <BlogCard
-              // ⚠️ 修复：解决 ts(7044) warning，显式指定类型
-              content={{ ...post.data, ...post } as any} 
+              content={{ ...post.data, ...post } as any}
               data-aos={Math.floor(index / 3) % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
               data-aos-delay={((index % 3) + 1) * 200}
             />
@@ -92,8 +88,9 @@ const hasWorks = taggedWorks.length > 0;
               image={work.image}
               url={work.url}
               tags={work.tags}
-              // 💥 关键修复点：使用 Nullish Coalescing (??) 避免 TS 2339 错误
-              video={work.video ?? undefined}
+              // 💥 最终修复点：使用类型断言 (work as any).video 解决 TS 2339 错误
+              // Nullish Coalescing (??) 确保 video 属性不存在时，传递 undefined
+              video={(work as any).video ?? undefined} 
               isShow={work.isShow}
               layout="featured"
               index={index}
