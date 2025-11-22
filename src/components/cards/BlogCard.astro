@@ -54,6 +54,10 @@ const mediaClass = computedRatio === "auto"
   : "w-full h-full object-contain transition-transform duration-500 group-hover:scale-105";
 
 const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9]+/gi,'-').toLowerCase()}` : null;
+
+// 🚀 优化变量：判断是否需要高优先级加载
+// 如果卡片是水平布局（通常用于特色/首屏）或者没有 video 属性，我们假设它可能是 LCP 元素
+const isLcpCandidate = isHorizontal || !video; 
 ---
 
 <article
@@ -76,7 +80,6 @@ const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9
         id={videoId}
         src={video}
         poster={img}
-        autoplay
         loop
         muted
         playsinline
@@ -94,8 +97,7 @@ const videoId = video ? `blogcard-video-${(slug ?? content.id).replace(/[^a-z0-9
       <img
         src={img}
         alt={img_alt || `Related to ${title}`}
-        loading="lazy"
-        class={mediaClass}
+        loading={isLcpCandidate ? undefined : 'lazy'} fetchpriority={isLcpCandidate ? 'high' : 'auto'} class={mediaClass}
       />
     ) : (
       <div class="w-full h-full flex items-center justify-center bg-neutral-200 dark:bg-neutral-700">
