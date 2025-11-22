@@ -17,7 +17,7 @@ const {
 	keywords
 } = Astro.props;
 
-// Astro/Vite 将自动处理这些导入，并在 <head> 中生成标准的 <link rel="stylesheet">
+// 保持所有 CSS import，让 Astro 自动处理
 import "../styles/global.css";
 import "aos/dist/aos.css";
 import "../styles/aos-custom.css";
@@ -29,17 +29,6 @@ import '../styles/article-enhancements.css';
   <head>
     <meta charset="UTF-8" />
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link 
-      rel="stylesheet" 
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
-    >
-    <link 
-      rel="stylesheet" 
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-    >
-
     <Meta
       title = {title}
       description = {description}
@@ -66,6 +55,6 @@ import '../styles/article-enhancements.css';
     <slot />
     <Footer />
     
-    <script src="../assets/js/main.js" defer></script>
+    <script src="../assets/js/main.js"></script> 
   </body>
 </html>
