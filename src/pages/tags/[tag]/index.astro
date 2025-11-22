@@ -16,7 +16,6 @@ export async function getStaticPaths() {
     }
   });
   
-  // Explicitly casting work to any for safer access later
   works.forEach((work: any) => { 
     if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
       work.tags.forEach(tag => allTags.add(tag));
@@ -81,7 +80,6 @@ const hasWorks = taggedWorks.length > 0;
               image={work.image}
               url={work.url}
               tags={work.tags}
-              // 最终的修复逻辑，干净地使用类型断言和 Nullish Coalescing 
               video={(work as any).video ?? undefined} 
               isShow={work.isShow}
               layout="featured"
