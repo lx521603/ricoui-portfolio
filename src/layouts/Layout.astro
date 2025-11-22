@@ -17,7 +17,8 @@ const {
 	keywords
 } = Astro.props;
 
-// 保持所有 CSS 导入在组件脚本中，让 Astro/Vite 知道它们的存在
+// Astro/Vite 将自动处理这些导入，并在 <head> 中生成阻塞渲染的 <link rel="stylesheet">
+// 我们暂时保留这种阻塞，以确保样式不丢失。
 import "../styles/global.css";
 import "aos/dist/aos.css";
 import "../styles/aos-custom.css";
@@ -31,7 +32,6 @@ import '../styles/article-enhancements.css';
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
     <link 
       rel="stylesheet" 
       href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
