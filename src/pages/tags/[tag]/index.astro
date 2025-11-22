@@ -1,271 +1,113 @@
 ---
-/**
- * Complete WorkCard.astro
- *
- * Props:
- * - name: string (required)
- * - image: string (required)  // poster for video or image src
- * - url: string (required)
- * - description?: string
- * - tags?: string[]
- * - video?: string   // optional video src
- * - isShow?: boolean // optional
- * - layout?: 'featured' | 'grid'
- * - index?: number
- * - target?: string
- * - mediaRatio?: '4:3'|'3:4'|'16:9'|'9:16'|'1:1'|'auto'  // default 'auto'
- *
- * This file is self-contained and only modifies this component.
- */
+import Layout from "@/layouts/Layout.astro";
+import BlogCard from "@/components/cards/BlogCard.astro";
+import WorkCard from "@/components/cards/WorkCard.astro";
+import { getCollection } from "astro:content";
+// 假设您的 JSON 文件位于 collections 文件夹下，且命名为 featuredwork.json
+// 如果文件路径不同，请自行修改
+import works from "@/collections/featuredwork.json"; 
 
-// ⚠️ 注意：这里我们保留了原始代码中对 ImageMod 的依赖，但它未在导入部分显示。
-// 请确保您的实际文件中导入了 ImageMod 或直接使用 <img> 标签。
-// 在提供的代码中，我们看到的是直接的 <img> 标签，没有 ImageMod，这是正确的。
-
-interface Props {
-  name: string;
-  image: string;
-  url: string;
-  description?: string;
-  tags?: string[];
-  video?: string;
-  isShow?: boolean;
-  layout?: 'featured' | 'grid';
-  index?: number;
-  target?: string;
-  mediaRatio?: '4:3' | '3:4' | '16:9' | '9:16' | '1:1' | 'auto';
+export async function getStaticPaths() {
+  const posts = await getCollection("post");
+  
+  // 收集所有唯一的标签（从博客和作品）
+  const allTags = new Set();
+  
+  // 从博客文章收集标签
+  posts.forEach(post => {
+    if (post.data.tags && Array.isArray(post.data.tags)) {
+      post.data.tags.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // 从作品收集标签
+  // ⚠️ 建议：确保 works 数组中的每个对象都有 tags 属性，
+  // 即使它是空数组或 null，以避免运行时错误。
+  works.forEach(work => {
+    if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
+      work.tags.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // 为每个标签生成路径
+  return Array.from(allTags).map(tag => ({
+    params: { tag: String(tag) },
+    props: { tag: String(tag) }
+  }));
 }
 
-const {
-  name,
-  description = '',
-  url,
-  image,
-  tags = [],
-  video,
-  isShow = true,
-  layout = 'grid',
-  index = 0,
-  target = "_blank",
-  mediaRatio = 'auto'
-}: Props = Astro.props;
+const { tag } = Astro.params;
 
-// Generate stable id for each video
-const videoId = `workcard-video-${index}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
+// 获取该标签下的所有博客文章
+const allPosts = await getCollection("post");
+const taggedPosts = allPosts
+  .filter(post => post.data.tags && Array.isArray(post.data.tags) && post.data.tags.includes(tag))
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 
-// aspect-ratio mapping (used only if not 'auto')
-const ratioMap: Record<string, string> = {
-  "4:3": "aspect-[4/3]",
-  "3:4": "aspect-[3/4]",
-  "16:9": "aspect-[16/9]",
-  "9:16": "aspect-[9/16]",
-  "1:1": "aspect-square",
-};
+// 获取该标签下的所有作品
+// ⚠️ 假设 works 数组中的对象结构与 WorkCard 的 Props 兼容
+const taggedWorks = works
+  .filter(work => work.tags && Array.isArray(work.tags) && work.tags.includes(tag) && work.isShow !== false);
 
-// compute classes
-const useAspect = mediaRatio !== 'auto';
-const aspectClass = useAspect ? (ratioMap[mediaRatio] ?? ratioMap['4:3']) : '';
-const mediaClass = mediaRatio === 'auto'
-  ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105'
-  : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105';
+const hasBlogPosts = taggedPosts.length > 0;
+const hasWorks = taggedWorks.length > 0;
 ---
 
-<article
-  class:list={[
-    "group relative overflow-hidden transition-all duration-500 mb-8 bg-white/85 p-5 dark:bg-bg-secondary-dark border-[.75px] border-solid border-primary/15 rounded-2xl backdrop-blur-sm",
-    layout === 'featured' ? "" : ""
-  ]}
-  data-aos="fade-up"
-  data-aos-duration="500"
-  data-aos-delay={index * 100}
-  data-aos-once="true"
-  aria-hidden={!isShow}
->
-  <div class:list={[
-    "relative overflow-hidden rounded-xl",
-    aspectClass
-  ]}>
-    {video ? (
-      <video
-        id={videoId}
-        src={video}
-        poster={image}
-        autoplay
-        loop
-        muted
-        playsinline
-        webkit-playsinline
-        preload="auto"
-        controls={false}
-        disablepictureinpicture
-        controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"
-        class={mediaClass}
-      >
-        <source src={video} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-    ) : (
-      <img
-        src={image}
-        alt={name ?? ''}
-        class={mediaClass + " hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"}
-        loading="lazy"
-      />
-    )}
-
-    <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-
-    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-      <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/95 backdrop-blur-sm shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 group-hover:scale-110">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="text-primary"
-        >
-          <path d="M7 7h10v10"></path>
-          <path d="M7 17 17 7"></path>
-        </svg>
-      </div>
-    </div>
-  </div>
-
-  <div class:list={[
-    "px-1 pt-6 pb-2",
-    layout === 'featured' ? "md:px-1 md:pt-6 md:pb-2" : ""
-  ]}>
-    <div class="flex items-start justify-between gap-3 mb-3">
-      <h3 class:list={[
-        "text-neutral-900 dark:text-white leading-tight font-brand transition-colors duration-300 group-hover:text-primary dark:group-hover:text-primary-light",
-        layout === 'featured' ? "text-2xl md:text-3xl" : "text-2xl"
-      ]}>
-        {name}
-      </h3>
-
-      <div class="flex-shrink-0 mt-1">
-        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light transition-all duration-300 group-hover:bg-primary dark:group-hover:bg-primary-light group-hover:text-white dark:group-hover:text-neutral-900 group-hover:rotate-45">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M7 7h10v10"></path>
-            <path d="M7 17 17 7"></path>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    {tags && tags.length > 0 && (
-      <div class="flex flex-wrap gap-1.5 mb-3 relative z-20">
-        {tags.map((tag) => (
-          <a
-            href={`/tags/${tag}/`}
-            class="inline-flex items-center rounded-full bg-primary/8 dark:bg-primary/15 px-2.5 py-0.5 text-[10px] font-medium text-primary-dark dark:text-primary-light border border-primary/10 dark:border-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary/30 dark:hover:border-primary/40 transition-all duration-300 cursor-pointer relative z-20"
-            onclick="event.stopPropagation();"
-          >
-            {tag}
-          </a>
-        ))}
-      </div>
-    )}
-
-    {description && (
-      <p class:list={[
-        "text-neutral-600 dark:text-neutral-400 leading-relaxed",
-        layout === 'featured' ? "text-base md:text-lg line-clamp-2" : "text-sm line-clamp-2"
-      ]}>
-        {description}
+<Layout title={`${tag} - 标签`} description={`包含标签 "${tag}" 的文章和作品`}>
+  <div class="relative site-container z-20 w-full mx-auto mt-8 px-4 md:mt-10 lg:mt-12 xl:px-0">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-4">标签: {tag}</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {taggedPosts.length + taggedWorks.length} 个包含标签 "{tag}" 的内容
+        {hasBlogPosts && hasWorks && ` (${taggedPosts.length} 篇文章, ${taggedWorks.length} 个作品)`}
+        {hasBlogPosts && !hasWorks && ` (${taggedPosts.length} 篇文章)`}
+        {!hasBlogPosts && hasWorks && ` (${taggedWorks.length} 个作品)`}
       </p>
+    </div>
+
+    {hasBlogPosts && (
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">相关文章</h2>
+        <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+          {taggedPosts.map((post, index) => (
+            <BlogCard
+              // ⚠️ 修复：解决 ts(7044) warning，显式指定类型
+              content={{ ...post.data, ...post } as any} 
+              data-aos={Math.floor(index / 3) % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
+              data-aos-delay={((index % 3) + 1) * 200}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    {hasWorks && (
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">相关作品</h2>
+        <div class="space-y-8 md:space-y-10">
+          {taggedWorks.map((work, index) => (
+            <WorkCard
+              name={work.name}
+              description={work.description}
+              image={work.image}
+              url={work.url}
+              tags={work.tags}
+              // 💥 关键修复点：使用 Nullish Coalescing (??) 避免 TS 2339 错误
+              video={work.video ?? undefined}
+              isShow={work.isShow}
+              layout="featured"
+              index={index}
+              mediaRatio="auto"
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    {!hasBlogPosts && !hasWorks && (
+      <div class="text-center text-gray-500 dark:text-gray-400 py-12">
+        <p>未找到包含此标签的内容。</p>
+      </div>
     )}
   </div>
-
-  <a
-    href={url}
-    target={target}
-    rel={target === "_blank" ? "noopener noreferrer" : undefined}
-    class="absolute inset-0 z-10"
-  >
-    <span class="sr-only">查看 {name}</span>
-  </a>
-</article>
-
-{video && (
-  <script define:vars={{ videoId }}>
-    // ⚠️ 警告: 这里是一个客户端脚本，用于处理视频播放逻辑
-    (function() {
-      const video = document.getElementById(videoId);
-      // 修复：确保 video 元素存在且类型正确
-      if (!video || !(video instanceof HTMLVideoElement)) return;
-      let isPlaying = false, observer = null, playAttempts = 0;
-      const MAX_PLAY_ATTEMPTS = 3;
-
-      video.muted = true;
-      video.playsInline = true;
-      video.setAttribute('playsinline','');
-      video.setAttribute('webkit-playsinline','');
-      video.removeAttribute('controls');
-
-      function tryPlay() {
-        if (isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return;
-        playAttempts++;
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise.then(()=>{isPlaying=true; playAttempts=0;})
-            .catch((error)=>{isPlaying=false;
-              if (error?.name==='NotAllowedError'){handleUserInteraction();}});
-        }
-      }
-
-      function handleUserInteraction() {
-        ['touchstart','click','scroll'].forEach(ev=>{
-          document.addEventListener(ev,function onInteraction(){
-            tryPlay();
-            ['touchstart','click','scroll'].forEach(event=>document.removeEventListener(event,onInteraction));
-          },{once:true,passive:true});
-        });
-      }
-
-      function setupIntersectionObserver() {
-        observer = new IntersectionObserver((entries)=>{
-          entries.forEach(entry=>{
-            if(entry.isIntersecting){if(video.paused){playAttempts=0;tryPlay();}}
-            else{if(!video.paused){video.pause();isPlaying=false;}}
-          });
-        }, {root:null, rootMargin:'50px', threshold:0.1});
-        observer.observe(video);
-      }
-
-      function handleVisibilityChange() {
-        if(!document.hidden && !video.paused){
-          const rect = video.getBoundingClientRect();
-          if(rect.top<window.innerHeight && rect.bottom>0){playAttempts=0; tryPlay();}
-        }
-      }
-
-      function init() {
-        if(video.readyState>=2){tryPlay();}
-        else{video.addEventListener('loadeddata',tryPlay,{once:true});}
-        setupIntersectionObserver();
-        document.addEventListener('visibilitychange',handleVisibilityChange);
-      }
-
-      function cleanup(){if(observer){observer.disconnect();observer=null;}document.removeEventListener('visibilitychange',handleVisibilityChange);}
-
-      init();
-      document.addEventListener('astro:before-preparation',cleanup,{once:true});
-    })();
-  </script>
-)}
+</Layout>
