@@ -17,8 +17,7 @@ const {
 	keywords
 } = Astro.props;
 
-// Astro/Vite 将自动处理这些导入，并在 <head> 中生成阻塞渲染的 <link rel="stylesheet">
-// 我们暂时保留这种阻塞，以确保样式不丢失。
+// Astro/Vite 将自动处理这些导入，并在 <head> 中生成标准的 <link rel="stylesheet">
 import "../styles/global.css";
 import "aos/dist/aos.css";
 import "../styles/aos-custom.css";
