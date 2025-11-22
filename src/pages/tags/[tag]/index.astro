@@ -8,25 +8,21 @@ import works from "@/collections/featuredwork.json";
 export async function getStaticPaths() {
   const posts = await getCollection("post");
   
-  // 收集所有唯一的标签（从博客和作品）
-  const allTags = new Set();
+  const allTags = new Set<string>();
   
-  // 从博客文章收集标签
   posts.forEach(post => {
-    // ⚠️ 修复：解决 TS 7044 警告，这里使用 'post' 参数的推断类型。
     if (post.data.tags && Array.isArray(post.data.tags)) {
       post.data.tags.forEach(tag => allTags.add(tag));
     }
   });
   
-  // 从作品收集标签
-  works.forEach((work: any) => { // ⚠️ 修复：使用 'any' 避免 TS 7044 警告
+  // 解决 TS 7044 警告，将 work 显式断言为 any
+  works.forEach((work: any) => { 
     if (work.tags && Array.isArray(work.tags) && work.isShow !== false) {
       work.tags.forEach(tag => allTags.add(tag));
     }
   });
   
-  // 为每个标签生成路径
   return Array.from(allTags).map(tag => ({
     params: { tag: String(tag) },
     props: { tag: String(tag) }
@@ -35,14 +31,11 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 
-// 获取该标签下的所有博客文章
 const allPosts = await getCollection("post");
 const taggedPosts = allPosts
   .filter(post => post.data.tags && Array.isArray(post.data.tags) && post.data.tags.includes(tag))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 
-// 获取该标签下的所有作品
-// ⚠️ 假设 works 数组中的对象结构与 WorkCard 的 Props 兼容
 const taggedWorks = works
   .filter(work => work.tags && Array.isArray(work.tags) && work.tags.includes(tag) && work.isShow !== false);
 
@@ -88,8 +81,7 @@ const hasWorks = taggedWorks.length > 0;
               image={work.image}
               url={work.url}
               tags={work.tags}
-              // 💥 最终修复点：使用类型断言 (work as any).video 解决 TS 2339 错误
-              // Nullish Coalescing (??) 确保 video 属性不存在时，传递 undefined
+              // 最终修复点：使用类型断言安全访问 video 属性
               video={(work as any).video ?? undefined} 
               isShow={work.isShow}
               layout="featured"
