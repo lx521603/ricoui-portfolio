@@ -18,10 +18,6 @@
  * This file is self-contained and only modifies this component.
  */
 
-// ⚠️ 注意：这里我们保留了原始代码中对 ImageMod 的依赖，但它未在导入部分显示。
-// 请确保您的实际文件中导入了 ImageMod 或直接使用 <img> 标签。
-// 在提供的代码中，我们看到的是直接的 <img> 标签，没有 ImageMod，这是正确的。
-
 interface Props {
   name: string;
   image: string;
@@ -68,6 +64,9 @@ const aspectClass = useAspect ? (ratioMap[mediaRatio] ?? ratioMap['4:3']) : '';
 const mediaClass = mediaRatio === 'auto'
   ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105'
   : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105';
+
+// 🚀 LCP 优化逻辑：如果布局是 'featured' (特色展示)，则视为 LCP 候选元素。
+const isLcpCandidate = layout === 'featured' && !video;
 ---
 
 <article
@@ -109,7 +108,10 @@ const mediaClass = mediaRatio === 'auto'
         src={image}
         alt={name ?? ''}
         class={mediaClass + " hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10"}
-        loading="lazy"
+        
+        loading={isLcpCandidate ? undefined : 'lazy'}
+        
+        fetchpriority={isLcpCandidate ? 'high' : 'auto'}
       />
     )}
 
