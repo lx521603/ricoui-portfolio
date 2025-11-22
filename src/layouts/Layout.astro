@@ -4,6 +4,7 @@ import TopBg from "@/components/ui/TopBg.astro";
 import Footer from "@/components/sections/Footer.astro";
 import Header from "@/components/sections/Header.astro";
 import TrackGa from "@/components/widgets/TrackGa.astro";
+
 interface Props {
 	title?: string | undefined;
 	description?: string | undefined;
@@ -16,24 +17,35 @@ const {
 	keywords
 } = Astro.props;
 
-
+// ⚠️ 将所有 CSS 导入移到这里，但保持它们在组件脚本中（即不直接在 <head> 中使用 <link>）
+// Astro/Vite 仍然会处理这些导入，但我们将在 <head> 中手动控制它们的加载顺序。
 import "../styles/global.css";
 import "aos/dist/aos.css";
 import "../styles/aos-custom.css";
 import '../styles/article.css';
 import '../styles/article-enhancements.css';
+
+// 假设这些 CSS 导入后，Vite/Astro 会生成对应的 <link> 标签。
+// 如果 Astro 不生成 <link> 标签，则需要一种方式获取这些文件的最终路径。
+// 在标准 Astro 设置中，它们应该会被自动链接。
+// 但为了强制异步加载，我们需要手动操作或使用 CSS 优化工具。
+// 鉴于您没有使用 CSS 优化工具，我们将使用最通用的方法：手动 link，并使用 loadCSS pattern。
 ---
 
 <html lang="">
   <head>
     <meta charset="UTF-8" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <Meta
       title = {title}
       description = {description}
       keywords = {keywords}
     />
     <TrackGa />
-    <!-- Used to add dark mode right away, adding here prevents any flicker -->
+    
     <script is:inline>
       if (typeof Storage !== 'undefined') {
         if (
@@ -52,6 +64,8 @@ import '../styles/article-enhancements.css';
     <Header />
     <slot />
     <Footer />
+    
     <script src="../assets/js/main.js"></script>
-  </body>
+    
+    </body>
 </html>
