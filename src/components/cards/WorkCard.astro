@@ -65,7 +65,7 @@ const mediaClass = mediaRatio === 'auto'
   ? 'w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105'
   : 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105';
 
-// 🚀 LCP 优化逻辑：如果布局是 'featured' (特色展示)，则视为 LCP 候选元素。
+// 🚀 LCP 优化逻辑：如果布局是 'featured' (特色展示) 且没有视频，则视为 LCP 候选元素。
 const isLcpCandidate = layout === 'featured' && !video;
 ---
 
