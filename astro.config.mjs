@@ -14,6 +14,12 @@ export default defineConfig({
   base: '/',
   envPrefix: 'PUBLIC_',
   vite: {
+    build: {
+      // 告诉 esbuild/Vite 只转译到支持 ES2020 的浏览器
+      // 这将保留大多数 ES6/ES7/ES8 特性，无需转译。
+      // 'es2020' 是一个很好的基线，通常能覆盖 95% 以上的用户。
+      target: 'es2020', 
+    },
     plugins: [tailwindcss()],
     resolve: {
       alias: {
