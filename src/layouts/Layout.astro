@@ -17,19 +17,12 @@ const {
 	keywords
 } = Astro.props;
 
-
-// ⚠️ 保持所有 CSS 导入在组件脚本中，让 Astro/Vite 知道它们的存在，并生成带 hash 的路径
+// 保持所有 CSS 导入在组件脚本中，让 Astro/Vite 知道它们的存在
 import "../styles/global.css";
 import "aos/dist/aos.css";
 import "../styles/aos-custom.css";
 import '../styles/article.css';
 import '../styles/article-enhancements.css';
-// 假设这些导入对应的最终 CSS 文件就是 /_astro/works.W1_vu3wU.css
-
-// 💡 提示：如果 Astro 还会生成其他 CSS 文件，请确保它们也被异步处理！
-// 比如 /_astro/global.CI3aWf2A.css 也应该被处理。
-// 因为报告中只列出了 works.W1_vu3wU.css，我们先处理它。
-
 ---
 
 <html lang="">
@@ -48,23 +41,13 @@ import '../styles/article-enhancements.css';
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
     >
 
-    <link 
-      rel="preload" 
-      href="/_astro/works.W1_vu3wU.css"  
-      as="style" 
-      onload="this.onload=null;this.rel='stylesheet'"
-    />
-    
-    <noscript>
-      <link rel="stylesheet" href="/_astro/works.W1_vu3wU.css" />
-    </noscript>
-
     <Meta
       title = {title}
       description = {description}
       keywords = {keywords}
     />
     <TrackGa />
+    
     <script is:inline>
       if (typeof Storage !== 'undefined') {
         if (
@@ -75,6 +58,7 @@ import '../styles/article-enhancements.css';
         }
       }
     </script>
+
     <link rel="icon" type="image/x-icon" href="/favicon.png" />
   </head>
   <body class="antialiased bg-bg-primary dark:bg-bg-primary-dark max-w-full overflow-x-hidden">
@@ -82,6 +66,7 @@ import '../styles/article-enhancements.css';
     <Header />
     <slot />
     <Footer />
-    <script src="../assets/js/main.js"></script>
+    
+    <script src="../assets/js/main.js" defer></script>
   </body>
 </html>
