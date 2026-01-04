@@ -1,4 +1,12 @@
 [
+  	{
+		"name": "薇薇",
+		"description": "夜景人像",
+		"tags": ["芒市","夜景","人像"],
+		"image": "https://img.sorayt.cn/f/W3SR/DSC01746.webp",
+		"url": "/blog/shot-dzgz-mangshi",
+ 		"isShow": true
+	},
 	{
 		"name": "薇薇夜景人像",
 		"description": "薇薇夜景人像",
@@ -6,13 +14,5 @@
 		"image": "https://img.sorayt.cn/f/v0h6/DSC00763.BnP4sFeo.jpg",
 		"url": "/blog/web-design-style-guide-brutalism/",
 		"isShow": true
-	},
-	{
-		"name": "薇薇直播",
-		"description": "薇薇直播",
-		"tags": ["保山","直播","工作"],
-		"image": "https://img.sorayt.cn/f/lgi6/vv1.jpg",
-		"url": "/blog/shot-wwzb",
- 		"isShow": true
 	}
 ]
